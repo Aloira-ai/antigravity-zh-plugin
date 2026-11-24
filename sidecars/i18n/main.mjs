@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startCdpHost } from '../../lib/cdp-host.mjs';
 import { BUILTIN_PAIRS, mergeDictionaryPairs } from '../../lib/dictionary.mjs';
-import { manualLaunchCommand } from '../../lib/paths.mjs';
+import { createDebugShortcutCommand, manualLaunchCommand } from '../../lib/paths.mjs';
 import { createSettingsStore } from '../../lib/settings.mjs';
 import { startWebUi } from '../../lib/web-ui.mjs';
 
@@ -35,9 +35,11 @@ if (isMain) {
       builtinCount: BUILTIN_PAIRS.length,
       customCount: customPairs.length,
       totalCount: mergedPairs.length,
-      customPath: settings.customDictionaryPath
+      customPath: settings.customDictionaryPath,
+      customEntries: customPairs.slice(0, 200)
     },
-    launchCommand: manualLaunchCommand()
+    launchCommand: manualLaunchCommand(),
+    shortcutCommand: createDebugShortcutCommand()
   });
 
   const closeWebUi = await startWebUi({
@@ -50,6 +52,18 @@ if (isMain) {
     },
     onReloadDictionary: async () => {
       customPairs = settings.loadCustomDictionary();
+      mergedPairs = mergeDictionaryPairs(customPairs);
+      await cdpHost.reloadDictionary();
+      return getSnapshot();
+    },
+    onUpsertCustomEntry: async ({ en, zh }) => {
+      customPairs = settings.setCustomEntry(en, zh);
+      mergedPairs = mergeDictionaryPairs(customPairs);
+      await cdpHost.reloadDictionary();
+      return getSnapshot();
+    },
+    onDeleteCustomEntry: async ({ en }) => {
+      customPairs = settings.removeCustomEntry(en);
       mergedPairs = mergeDictionaryPairs(customPairs);
       await cdpHost.reloadDictionary();
       return getSnapshot();

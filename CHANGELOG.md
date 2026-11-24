@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0] - 2026-11-24
+
+### Added
+- **远程一行安装与独立卸载**：[install.ps1](install.ps1) / [install.sh](install.sh) 支持 `irm ... | iex` 与 `curl -fsSL ... | bash` 自动拉取仓库压缩包安装（无需 Git 或本地源码目录）；[uninstall.ps1](uninstall.ps1) / [uninstall.sh](uninstall.sh) 支持脱离源码目录独立安全卸载（含 `--purge` / `AGY_I18N_PURGE=1`）。
+- **Aux Pane 可视化自定义词典管理**：在 [lib/settings.mjs](lib/settings.mjs)、[sidecars/i18n/main.mjs](sidecars/i18n/main.mjs) 与 [lib/web-ui.mjs](lib/web-ui.mjs) 新增 `POST/DELETE /api/custom-dictionary` 接口与面板内联增删改界面，保存即原子写入并热生效。
+- **独立调试快捷方式命令复制**：在 [lib/paths.mjs](lib/paths.mjs) 新增只读 `createDebugShortcutCommand`（并在 Windows Aux Pane 提供复制按钮），不修改用户原快捷方式即可按需创建独立的调试快捷方式。
+- **内置助手技能**：新增 [skills/agy-i18n/SKILL.md](skills/agy-i18n/SKILL.md)，配合 [plugin.json](plugin.json) 的 `suggestedPrompts` 支持通过对话检查汉化状态、添加自定义词条或配置调试启动参数。
+
 ## [1.1.0] - 2026-11-24
 
 ### Added

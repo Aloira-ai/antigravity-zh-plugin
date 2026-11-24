@@ -26,7 +26,7 @@
 
 ## 2. 当前进度与本机环境
 
-- **插件版本**：`1.1.0`（`plugin.json` / `package.json`）
+- **插件版本**：`1.2.0`（`plugin.json` / `package.json`）
 - **源码工作区**：仓库根目录（`agy-i18n/`）
 - **已安装插件目录**：`~/.gemini/config/plugins/agy-i18n`（Windows 为 `%USERPROFILE%\.gemini\config\plugins\agy-i18n`）
 - **用户设置与自定义词典目录**：`~/.gemini/antigravity/plugin_data/agy-i18n/`（Windows 为 `%USERPROFILE%\.gemini\antigravity\plugin_data\agy-i18n\`）
@@ -59,21 +59,23 @@ agy-i18n/
 ├── README.md                  # 用户安装、启动参数、自定义词典与卸载说明
 ├── CHANGELOG.md               # 版本变更记录
 ├── HANDOFF.md                 # 本交接文档
-├── install.ps1 / uninstall.ps1# Windows 安装/卸载脚本封装（自动回退 agy-node.cmd）
-├── install.sh / uninstall.sh  # macOS / Linux 安装/卸载脚本封装（自动回退 agy-node）
+├── install.ps1 / uninstall.ps1# Windows 远程一行安装与独立安全卸载脚本（自动回退 agy-node.cmd）
+├── install.sh / uninstall.sh  # macOS / Linux 远程一行安装与独立安全卸载脚本（自动回退 agy-node）
 ├── assets/
 │   └── logo.svg               # 128x128 插件图标（中/A）
+├── skills/agy-i18n/
+│   └── SKILL.md               # 内置助手技能（检查汉化状态、管理自定义词典、引导调试端口配置）
 ├── sidecars/i18n/
 │   ├── sidecar.json           # Sidecar 配置（Aux Pane Web UI: "界面汉化"）
 │   └── main.mjs               # Sidecar 入口：串联 settings、dictionary、cdp-host、web-ui
 ├── lib/
-│   ├── paths.mjs              # 跨平台路径解析、DevToolsActivePort 查找、只读启动命令生成
-│   ├── settings.mjs           # 原子写入 settings.json 与解析 custom-dictionary.json
+│   ├── paths.mjs              # 跨平台路径解析、DevToolsActivePort 查找、只读启动与快捷方式命令生成
+│   ├── settings.mjs           # 原子写入 settings.json 与增删改/解析 custom-dictionary.json
 │   ├── community-pairs.json   # 精选社区 Antigravity Desktop 补充词条（1480条，MIT）
 │   ├── dictionary.mjs         # BASE_PAIRS + EXTRA_PAIRS + community-pairs.json -> BUILTIN_PAIRS (2703条)、translateDynamic、mergeDictionaryPairs
 │   ├── i18n-client.js         # 注入浏览器的纯 DOM 汉化脚本（多文本节点合并、子树剪枝、精细边界排除、data-tooltip-content 与可选悬浮胶囊）
 │   ├── cdp-host.mjs           # 轮询 DevToolsActivePort、注入 Hub 主窗口与 Swarm iframe、__agyI18nHost 绑定
-│   └── web-ui.mjs             # 127.0.0.1 Sidecar Aux Pane HTTP 服务（加载 /preload.js、token 鉴权、中/英按钮）
+│   └── web-ui.mjs             # 127.0.0.1 Sidecar Aux Pane HTTP 服务（加载 /preload.js、token 鉴权、中/英按钮与可视化词典编辑）
 ├── scripts/
 │   ├── install.mjs            # 安全安装到 ~/.gemini/config/plugins/agy-i18n（带锁定重试与原地回退）
 │   └── uninstall.mjs          # 安全卸载（默认保留 settings/自定义词典，--purge 一并清理）

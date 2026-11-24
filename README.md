@@ -6,7 +6,7 @@
 
 - **纯 DOM 层翻译**：仅通过 `MutationObserver` 与 `TreeWalker` 替换客户端 UI 文本（支持 React 拆散多文本节点合并翻译）与 `placeholder` / `title` / `data-tooltip-content` 属性，**跳过且不篡改**对话正文、用户提问、输入框、终端、代码编辑器、会话标题与代码块，也**不改动** `aria-label`。
 - **抗升级、零冗余侵入**：不修改 `app.asar`、不绑定未公开 React Fiber / 混淆组件 / Protobuf 字段，不注入模型 Prompt，不读取会话 SQLite，不修改 `config.json` 或快捷方式，不调用系统凭据库，不自动下载更新。
-- **零外部网络请求**：运行时仅访问本机 `127.0.0.1` 回环地址（本地 CDP 调试端口与 Sidecar 辅助面板）。
+- **零外部网络请求**：插件运行时严格只访问本机 `127.0.0.1` 回环地址（本地 CDP 调试端口与 Sidecar 辅助面板）。
 
 ### 与常见汉化方案对比
 
@@ -17,24 +17,37 @@
 | **中 / 英切换方式** | 运行时切换或还原卸载 | 双图标重启切换 | **原生面板 + 可选悬浮胶囊免重启秒切** |
 | **系统配置侵入度** | 改写安装目录文件 | 生成新启动入口/快捷方式 | **不改 `config.json` 与快捷方式** |
 
-## 安装方法
+## 安装方法（一行命令，无需装 Git）
 
-1. 克隆仓库（或下载 Release / Code ZIP 并解压后进入目录）：
-   ```bash
-   git clone https://github.com/Aloira-ai/antigravity-zh-plugin.git
-   cd antigravity-zh-plugin
-   ```
-2. 在项目目录运行对应平台的安装脚本（仅复制插件文件到 `~/.gemini/config/plugins/agy-i18n`，**不会**修改 `config.json` 或系统快捷方式）：
-   - **Windows (PowerShell)**：
+1. 选择任意一种方式运行安装（仅复制插件文件到 `~/.gemini/config/plugins/agy-i18n`，**不会**修改 `config.json` 或系统快捷方式）：
+
+   - **Windows (PowerShell 一行安装)**：
      ```powershell
-     powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+     irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/install.ps1 | iex
      ```
-   - **macOS / Linux (Bash)**：
+   - **macOS / Linux (一行安装)**：
      ```bash
-     bash ./install.sh
+     curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/install.sh | bash
      ```
-   （脚本会自动优先使用系统 `node` `>=22.13`，若未安装则自动回退到 Antigravity 内置的 `agy-node`。）
-3. 打开 Antigravity，进入 **Customizations**（自定义）页面，开启 **Agy i18n (界面汉化)** 插件及其 Sidecar。
+   - **Antigravity CLI 原生安装**：
+     ```bash
+     agy plugin install https://github.com/Aloira-ai/antigravity-zh-plugin
+     ```
+   （安装脚本会自动优先使用系统 `node` `>=22.13`，若未安装则自动回退到 Antigravity 内置的 `agy-node`。）
+
+<details>
+<summary>本地源码克隆安装（供开发者 / 离线环境使用）</summary>
+
+```bash
+git clone https://github.com/Aloira-ai/antigravity-zh-plugin.git
+cd antigravity-zh-plugin
+```
+- **Windows**：`powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1`
+- **macOS / Linux**：`bash ./install.sh`
+
+</details>
+
+2. 打开 Antigravity，进入 **Customizations**（自定义）页面，开启 **Agy i18n (界面汉化)** 插件及其 Sidecar。
 
 ## 启用前提：本地调试端口
 
@@ -44,6 +57,7 @@
   ```text
   "%LOCALAPPDATA%\Programs\antigravity\Antigravity.exe" --remote-debugging-port=0
   ```
+  > 提示：若不想修改原有快捷方式，可在右侧 **界面汉化** 面板的「启用条件与启动命令」里点击 **复制桌面快捷方式命令**，在 PowerShell 中粘贴运行，即可单独创建一个「`Antigravity (调试模式).lnk`」。
 - **macOS 终端启动**：
   ```bash
   open -n -a "/Applications/Antigravity.app" --args --remote-debugging-port=0
@@ -55,52 +69,44 @@
 
 > 注意：开启 `--remote-debugging-port=0` 仅限本机同权限进程访问 `DevToolsActivePort`；不建议在不受信任的多用户或高敏受控终端上长期开启。
 
-## 简 / 英切换按钮
+## 日常使用与自定义词典
 
+### 1. 简 / 英实时切换
 插件提供两种切换方式，状态实时持久化并同步到所有已连接的窗口：
+- **右侧辅助面板（默认提供）**：在 Antigravity 右侧 Aux Pane 打开 **界面汉化** 面板，点击顶部的 **「简体中文 / English」** 分段按钮即可一键切换（切回 English 时原样还原所有已替换节点）。
+- **主窗口右下角悬浮胶囊（可选）**：在 **界面汉化** 面板打开「主窗口悬浮切换按钮 (`中 / EN`)」开关后，主窗口右下角会出现可拖动位置的胶囊按钮，点击即可秒切中英文。
 
-1. **右侧辅助面板（默认提供）**：在 Antigravity 右侧 Aux Pane 打开 **界面汉化** 面板，直接点击顶部的 **「简体中文 / English」** 分段切换按钮即可一键切换（切换回 English 时会原样还原所有已替换节点）。
-2. **主窗口右下角悬浮胶囊（可选）**：在 **界面汉化** 面板中打开「主窗口悬浮切换按钮 (`中 / EN`)」开关后，主窗口右下角会出现一个可拖动位置的轻量胶囊按钮，点击即可一键中/英切换。
-
-## 自定义词典
-
-插件已内置 **2,703 条**常见界面词条。如需补充或覆盖内置词条，可在以下路径创建或编辑 JSON 文件（键值对为 `"英文原文": "中文译文"`）：
-
-- Windows：`%USERPROFILE%\.gemini\antigravity\plugin_data\agy-i18n\custom-dictionary.json`
-- macOS / Linux：`~/.gemini/antigravity/plugin_data/agy-i18n/custom-dictionary.json`
-
-示例：
-```json
-{
-  "New Conversation": "新建对话",
-  "Settings": "系统设置"
-}
-```
-保存后，在右侧 **界面汉化** 面板点击 **重新加载词典** 即可立即生效。
+### 2. 可视化自定义词典与内置助手技能
+插件已内置 **2,703 条**常见界面词条。如需补充或覆盖内置译文，可任选以下三种方式：
+- **面板内可视化增删（推荐）**：直接在右侧 **界面汉化** 面板的「翻译词典」卡片输入英文原文与中文译文并点 **添加**（点击已有词条可快速回填修改，或一键删除），保存后立即热生效，无需重启。
+- **对话配置（内置 `agy-i18n` 技能）**：在插件详情页点击推荐提示词，或直接对 Antigravity 说“检查汉化状态 / 往自定义词典把 XXX 翻译成 YYY”。
+- **手动编辑 JSON 文件**：文件位于 `~/.gemini/antigravity/plugin_data/agy-i18n/custom-dictionary.json`（Windows 为 `%USERPROFILE%\.gemini\antigravity\plugin_data\agy-i18n\custom-dictionary.json`），保存后在面板点 **重新加载词典** 即可。
 
 ## 常见问题与已知边界
 
 - **客户端升级后显示“等待调试端口”**：99% 是升级覆盖或重启客户端时未带 `--remote-debugging-port=0`。请确认启动快捷方式末尾仍保留该参数，并完全退出 Antigravity（含系统托盘）后重新启动。
-- **升级插件版本后如何生效**：重新运行安装脚本后，在 Antigravity 的 **Customizations → Agy i18n** 中先停用再重新启用插件（或重启客户端）即可让 Sidecar 重新加载新词典与脚本。
+- **升级插件版本后如何生效**：重新运行安装命令后，在 Antigravity 的 **Customizations → Agy i18n** 中先停用再重新启用插件（或重启客户端）即可让 Sidecar 重新加载新词典与脚本。
 - **会话列表鼠标右键菜单仍是英文**：Windows / 原生桌面右键菜单由 Electron 主进程调用系统原生菜单弹出，不经过网页 DOM。为守住“不修改 `app.asar`”红线，本插件不劫持原生菜单（会话行右侧 `⋮` 按钮若渲染在网页浮层内则可正常汉化）。
 
-## 卸载
+## 卸载（无需保留源码目录）
 
-1. 先在 Antigravity 的 **Customizations** 页面停用 **Agy i18n** 插件。
-2. 运行对应平台的卸载脚本：
+1. **Antigravity 界面原生卸载（推荐）**：打开 **Customizations → 已安装**，点击 **Agy i18n** 右侧 `⋮` 菜单选择 **卸载**。
+2. **Antigravity CLI 卸载**：
+   ```bash
+   agy plugin uninstall agy-i18n
+   ```
+3. **远程一行脚本卸载**（可选连同个人设置与自定义词典一并清理）：
    - **Windows (PowerShell)**：
      ```powershell
-     powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
-     ```
-     若希望连同 `settings.json` 与 `custom-dictionary.json` 一并清除，可加 `--purge`：
-     ```powershell
-     powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1 --purge
+     irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.ps1 | iex
+     # 若希望一并清理个人设置与自定义词典：
+     $env:AGY_I18N_PURGE='1'; irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.ps1 | iex
      ```
    - **macOS / Linux (Bash)**：
      ```bash
-     bash ./uninstall.sh
-     # 或连同个人设置与自定义词典一并清除：
-     bash ./uninstall.sh --purge
+     curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.sh | bash
+     # 若希望一并清理个人设置与自定义词典：
+     curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.sh | bash -s -- --purge
      ```
 
 ## 开源协议与致谢

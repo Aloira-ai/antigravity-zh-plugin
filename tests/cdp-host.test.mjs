@@ -202,6 +202,7 @@ test('install and uninstall manage plugin files safely without touching config.j
     assert.ok(existsSync(join(installed.destination, 'lib', 'community-pairs.json')));
     assert.ok(existsSync(join(installed.destination, 'lib', 'dictionary.mjs')));
     assert.ok(existsSync(join(installed.destination, 'lib', 'i18n-client.js')));
+    assert.ok(existsSync(join(installed.destination, 'skills', 'agy-i18n', 'SKILL.md')));
 
     const configPath = join(tempHome, '.gemini', 'config', 'config.json');
     assert.equal(existsSync(configPath), false, 'installer must never create or modify config.json');

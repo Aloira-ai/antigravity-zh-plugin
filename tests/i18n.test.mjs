@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { buildInjectionScript } from '../lib/cdp-host.mjs';
 import { BUILTIN_PAIRS, mergeDictionaryPairs, translateDynamic } from '../lib/dictionary.mjs';
+import { createDebugShortcutCommand } from '../lib/paths.mjs';
 import { createSettingsStore, DEFAULT_SETTINGS } from '../lib/settings.mjs';
 import { startWebUi } from '../lib/web-ui.mjs';
 
@@ -331,6 +332,23 @@ test('settings store validates, persists atomically, and merges custom dictionar
 
     writeFileSync(store.customDictionaryPath, '{invalid json', 'utf8');
     assert.deepEqual(store.loadCustomDictionary(), []);
+
+    // Custom entry upsert, overwrite, and delete
+    assert.deepEqual(store.setCustomEntry('  Hello  ', '  你好  '), [['Hello', '你好']]);
+    assert.deepEqual(store.setCustomEntry('Hello', '哈喽'), [['Hello', '哈喽']]);
+    assert.deepEqual(store.setCustomEntry('World', '世界'), [['Hello', '哈喽'], ['World', '世界']]);
+    assert.deepEqual(createSettingsStore(tempDir).loadCustomDictionary(), [['Hello', '哈喽'], ['World', '世界']]);
+    assert.throws(() => store.setCustomEntry('', '空'));
+    assert.throws(() => store.setCustomEntry('EmptyVal', '   '));
+    assert.deepEqual(store.removeCustomEntry('Hello'), [['World', '世界']]);
+    assert.deepEqual(createSettingsStore(tempDir).loadCustomDictionary(), [['World', '世界']]);
+    assert.throws(() => store.removeCustomEntry('   '));
+
+    const winShortcutCmd = createDebugShortcutCommand({ platform: 'win32', env: {}, home: 'C:\\DemoHome', exists: () => false });
+    assert.ok(winShortcutCmd.includes('--remote-debugging-port=0'));
+    assert.ok(winShortcutCmd.includes('Antigravity (调试模式).lnk'));
+    assert.equal(createDebugShortcutCommand({ platform: 'darwin' }), '');
+    assert.equal(createDebugShortcutCommand({ platform: 'linux' }), '');
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -656,34 +674,49 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
 test('Web UI HTTP server handles auth, language toggle, validation, and dictionary reload', async () => {
   let state = { language: 'zh-CN', floatingButton: false };
   let reloads = 0;
+  let customMap = new Map();
+
+  const buildSnapshot = () => ({
+    settings: state,
+    cdp: { connected: true, debugPortReached: true, hubCount: 1, swarmCount: 0 },
+    dictionary: {
+      builtinCount: BUILTIN_PAIRS.length,
+      customCount: customMap.size,
+      customEntries: [...customMap.entries()]
+    },
+    launchCommand: 'Antigravity.exe --remote-debugging-port=0',
+    shortcutCommand: 'powershell -NoProfile -Command "..."'
+  });
 
   const close = await startWebUi({
     port: 0,
     allowEphemeral: true,
     token: 'secret-token',
-    version: '1.0.0',
-    getStatus: () => ({
-      settings: state,
-      cdp: { connected: true, debugPortReached: true, hubCount: 1, swarmCount: 0 },
-      dictionary: { builtinCount: BUILTIN_PAIRS.length, customCount: 0 },
-      launchCommand: 'Antigravity.exe --remote-debugging-port=0'
-    }),
+    version: '1.2.0',
+    getStatus: buildSnapshot,
     onSetSettings: async patch => {
       if (patch.language && !['zh-CN', 'en'].includes(patch.language)) {
         throw new Error('无效语言');
       }
       state = { ...state, ...patch };
-      return {
-        settings: state,
-        cdp: { connected: true, debugPortReached: true, hubCount: 1, swarmCount: 0 }
-      };
+      return buildSnapshot();
     },
     onReloadDictionary: async () => {
       reloads++;
       return {
         settings: state,
-        dictionary: { builtinCount: BUILTIN_PAIRS.length, customCount: 2 }
+        dictionary: { builtinCount: BUILTIN_PAIRS.length, customCount: 2, customEntries: [...customMap.entries()] }
       };
+    },
+    onUpsertCustomEntry: async ({ en, zh }) => {
+      if (!en.trim() || !zh.trim()) throw new Error('词条不能为空');
+      customMap.set(en.trim(), zh.trim());
+      return buildSnapshot();
+    },
+    onDeleteCustomEntry: async ({ en }) => {
+      if (!en.trim()) throw new Error('英文原文不能为空');
+      customMap.delete(en.trim());
+      return buildSnapshot();
     }
   });
 
@@ -696,9 +729,19 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     assert.ok(html.includes('<script src="/preload.js"></script>'));
     assert.ok(html.includes('简体中文'));
     assert.ok(html.includes('English'));
+    assert.ok(html.includes('id="custom-en"'));
+    assert.ok(html.includes('id="custom-zh"'));
+    assert.ok(html.includes('id="custom-add-btn"'));
 
     const unauth = await fetch(`${base}/api/status`);
     assert.equal(unauth.status, 401);
+
+    const unauthDict = await fetch(`${base}/api/custom-dictionary`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ en: 'Test', zh: '测试' })
+    });
+    assert.equal(unauthDict.status, 401);
 
     const statusRes = await fetch(`${base}/api/status`, {
       headers: { 'x-sidecar-token': 'secret-token' }
@@ -730,6 +773,40 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     });
     assert.equal(reloadRes.status, 200);
     assert.equal(reloads, 1);
+
+    const badCustomRes = await fetch(`${base}/api/custom-dictionary`, {
+      method: 'POST',
+      headers: { 'x-sidecar-token': 'secret-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ en: 'OnlyEn' })
+    });
+    assert.equal(badCustomRes.status, 400);
+
+    const addCustomRes = await fetch(`${base}/api/custom-dictionary`, {
+      method: 'POST',
+      headers: { 'x-sidecar-token': 'secret-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ en: 'Workspace', zh: '工作空间' })
+    });
+    assert.equal(addCustomRes.status, 200);
+    const addCustomJson = await addCustomRes.json();
+    assert.equal(addCustomJson.dictionary.customCount, 1);
+    assert.deepEqual(addCustomJson.dictionary.customEntries, [['Workspace', '工作空间']]);
+
+    const badDelRes = await fetch(`${base}/api/custom-dictionary`, {
+      method: 'DELETE',
+      headers: { 'x-sidecar-token': 'secret-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ en: '  ' })
+    });
+    assert.equal(badDelRes.status, 400);
+
+    const delCustomRes = await fetch(`${base}/api/custom-dictionary`, {
+      method: 'DELETE',
+      headers: { 'x-sidecar-token': 'secret-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ en: 'Workspace' })
+    });
+    assert.equal(delCustomRes.status, 200);
+    const delCustomJson = await delCustomRes.json();
+    assert.equal(delCustomJson.dictionary.customCount, 0);
+    assert.deepEqual(delCustomJson.dictionary.customEntries, []);
   } finally {
     await close();
   }

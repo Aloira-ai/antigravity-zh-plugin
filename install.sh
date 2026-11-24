@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=""
+if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 
 candidates=()
 if node_bin="$(command -v node 2>/dev/null || true)"; then
@@ -31,4 +34,35 @@ if [[ -z "$runtime" ]]; then
   exit 1
 fi
 
-exec "$runtime" "$SCRIPT_DIR/scripts/install.mjs" "$@"
+if [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/scripts/install.mjs" ]]; then
+  exec "$runtime" "$SCRIPT_DIR/scripts/install.mjs" "$@"
+fi
+
+REPO="${AGY_I18N_REPO:-Aloira-ai/antigravity-zh-plugin}"
+REF="${AGY_I18N_REF:-main}"
+if [[ "$REF" =~ ^v[0-9] ]]; then
+  REF_PATH="refs/tags/$REF"
+else
+  REF_PATH="refs/heads/$REF"
+fi
+ARCHIVE_URL="https://github.com/$REPO/archive/$REF_PATH.tar.gz"
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+curl -fsSL "$ARCHIVE_URL" | tar -xz -C "$TMP_DIR"
+
+SRC_DIR=""
+for candidate_dir in "$TMP_DIR"/*; do
+  if [[ -f "$candidate_dir/scripts/install.mjs" ]]; then
+    SRC_DIR="$candidate_dir"
+    break
+  fi
+done
+
+if [[ -z "$SRC_DIR" ]]; then
+  echo "下载的压缩包缺少 scripts/install.mjs" >&2
+  exit 1
+fi
+
+"$runtime" "$SRC_DIR/scripts/install.mjs" "$@"

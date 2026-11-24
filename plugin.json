@@ -1,7 +1,7 @@
 {
   "name": "agy-i18n",
   "displayName": "Agy i18n (界面汉化)",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Minimal Simplified Chinese / English UI localizer for Antigravity 2.0 with one-click language switching.",
   "author": {
     "name": "Aloira-ai",
@@ -11,8 +11,8 @@
   "repository": "https://github.com/Aloira-ai/antigravity-zh-plugin",
   "logo": "assets/logo.svg",
   "suggestedPrompts": [
-    "Check Agy i18n localization status",
-    "Toggle Antigravity UI between Chinese and English",
-    "Add custom translation entries to Agy i18n"
+    "检查 Agy i18n 界面汉化状态与调试端口",
+    "往 Agy i18n 自定义词典添加一条界面翻译",
+    "如何为 Antigravity 配置 --remote-debugging-port=0 启动参数"
   ]
 }

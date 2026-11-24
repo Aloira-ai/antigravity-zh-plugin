@@ -5,7 +5,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { manualLaunchCommand } from '../lib/paths.mjs';
 
-const RUNTIME_ITEMS = ['plugin.json', 'package.json', 'LICENSE', 'README.md', 'assets', 'lib', 'sidecars'];
+const RUNTIME_ITEMS = ['plugin.json', 'package.json', 'LICENSE', 'README.md', 'assets', 'lib', 'sidecars', 'skills'];
 const LOCK_ERROR_CODES = new Set(['EPERM', 'EACCES', 'EBUSY', 'ENOTEMPTY']);
 const pause = ms => new Promise(resolvePause => setTimeout(resolvePause, ms));
 
