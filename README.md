@@ -17,23 +17,41 @@
 | **中 / 英切换方式** | 运行时切换或还原卸载 | 双图标重启切换 | **原生面板 + 可选悬浮胶囊免重启秒切** |
 | **系统配置侵入度** | 改写安装目录文件 | 生成新启动入口/快捷方式 | **不改 `config.json` 与快捷方式** |
 
-## 安装方法（一行命令，无需装 Git）
+## 安装方法
 
-1. 选择任意一种方式运行安装（仅复制插件文件到 `~/.gemini/config/plugins/agy-i18n`，**不会**修改 `config.json` 或系统快捷方式）：
+### 方式一：直接发一句话给 Antigravity 自动安装（最推荐）
 
-   - **Windows (PowerShell 一行安装)**：
-     ```powershell
-     irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/install.ps1 | iex
-     ```
-   - **macOS / Linux (一行安装)**：
-     ```bash
-     curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/install.sh | bash
-     ```
-   - **Antigravity CLI 原生安装**：
-     ```bash
-     agy plugin install https://github.com/Aloira-ai/antigravity-zh-plugin
-     ```
-   （安装脚本会自动优先使用系统 `node` `>=22.13`，若未安装则自动回退到 Antigravity 内置的 `agy-node`。）
+直接复制下面这句话发送给 Antigravity，它会自动完成安装并引导你启用：
+
+```text
+请帮我安装 https://github.com/Aloira-ai/antigravity-zh-plugin 这个界面汉化插件，并引导我启用。
+```
+
+Antigravity 会按你的操作系统运行官方安装脚本（仅复制文件到 `~/.gemini/config/plugins/agy-i18n`，**不会**修改 `config.json` 或覆盖原有快捷方式），随后给出插件启用入口并指引配置本地调试端口。
+
+<details>
+<summary>给 Antigravity 助手的自动安装执行说明</summary>
+
+1. 根据用户系统执行下方对应的安装命令（Windows 使用 `install.ps1`，macOS / Linux 使用 `install.sh`，或执行 `agy plugin install https://github.com/Aloira-ai/antigravity-zh-plugin`）；安装脚本会自动优先使用系统 `node` `>=22.13`，否则回退到 Antigravity 内置 `agy-node`。
+2. **不要**修改 `~/.gemini/config/config.json`，也**不要**静默覆盖用户原有的系统快捷方式。
+3. 安装完成后，给用户提供开启入口链接 `[Agy i18n (界面汉化)](customization://agy-i18n)`，并提醒按「启用前提：本地调试端口」以 `--remote-debugging-port=0` 重启客户端（Windows 用户如同意，可协助单独创建一个不覆盖原图标的桌面快捷方式 `Antigravity (调试模式).lnk`）。
+
+</details>
+
+### 方式二：手动终端一行安装（可选，无需装 Git）
+
+- **Windows (PowerShell)**：
+  ```powershell
+  irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/install.ps1 | iex
+  ```
+- **macOS / Linux (Bash)**：
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/install.sh | bash
+  ```
+- **Antigravity CLI 原生安装**：
+  ```bash
+  agy plugin install https://github.com/Aloira-ai/antigravity-zh-plugin
+  ```
 
 <details>
 <summary>本地源码克隆安装（供开发者 / 离线环境使用）</summary>
@@ -47,7 +65,9 @@ cd antigravity-zh-plugin
 
 </details>
 
-2. 打开 Antigravity，进入 **Customizations**（自定义）页面，开启 **Agy i18n (界面汉化)** 插件及其 Sidecar。
+### 安装后启用
+
+打开 Antigravity，进入 **Customizations**（自定义）页面，开启 **Agy i18n (界面汉化)** 插件及其 Sidecar。
 
 ## 启用前提：本地调试端口
 
@@ -88,26 +108,35 @@ cd antigravity-zh-plugin
 - **升级插件版本后如何生效**：重新运行安装命令后，在 Antigravity 的 **Customizations → Agy i18n** 中先停用再重新启用插件（或重启客户端）即可让 Sidecar 重新加载新词典与脚本。
 - **会话列表鼠标右键菜单仍是英文**：Windows / 原生桌面右键菜单由 Electron 主进程调用系统原生菜单弹出，不经过网页 DOM。为守住“不修改 `app.asar`”红线，本插件不劫持原生菜单（会话行右侧 `⋮` 按钮若渲染在网页浮层内则可正常汉化）。
 
-## 卸载（无需保留源码目录）
+## 卸载
 
-1. **Antigravity 界面原生卸载（推荐）**：打开 **Customizations → 已安装**，点击 **Agy i18n** 右侧 `⋮` 菜单选择 **卸载**。
-2. **Antigravity CLI 卸载**：
-   ```bash
-   agy plugin uninstall agy-i18n
-   ```
-3. **远程一行脚本卸载**（可选连同个人设置与自定义词典一并清理）：
-   - **Windows (PowerShell)**：
-     ```powershell
-     irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.ps1 | iex
-     # 若希望一并清理个人设置与自定义词典：
-     $env:AGY_I18N_PURGE='1'; irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.ps1 | iex
-     ```
-   - **macOS / Linux (Bash)**：
-     ```bash
-     curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.sh | bash
-     # 若希望一并清理个人设置与自定义词典：
-     curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.sh | bash -s -- --purge
-     ```
+### 直接点击卸载（最推荐）
+
+在 Antigravity 中打开 **Customizations → 已安装**，点击 **Agy i18n** 右侧 `⋮` 菜单选择 **卸载** 即可。
+
+> 原生卸载会移除插件目录，默认保留你的个人偏好与自定义词典（`~/.gemini/antigravity/plugin_data/agy-i18n`），日后重装无需重新配置。若也想一并清理数据，可直接让 Antigravity 删掉该目录，或使用下方命令行选项。
+
+<details>
+<summary>命令行卸载 / 连同个人设置与自定义词典彻底清理（可选）</summary>
+
+- **Antigravity CLI 卸载**：
+  ```bash
+  agy plugin uninstall agy-i18n
+  ```
+- **Windows (PowerShell 远程一行卸载，无需保留源码)**：
+  ```powershell
+  irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.ps1 | iex
+  # 若希望一并清理个人设置与自定义词典：
+  $env:AGY_I18N_PURGE='1'; irm https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.ps1 | iex
+  ```
+- **macOS / Linux (Bash 远程一行卸载，无需保留源码)**：
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.sh | bash
+  # 若希望一并清理个人设置与自定义词典：
+  curl -fsSL https://raw.githubusercontent.com/Aloira-ai/antigravity-zh-plugin/main/uninstall.sh | bash -s -- --purge
+  ```
+
+</details>
 
 ## 开源协议与致谢
 
