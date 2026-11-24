@@ -39,12 +39,12 @@ if ($isLocalScript) {
   exit $LASTEXITCODE
 }
 
-$repo = if ($env:AGY_I18N_REPO) { $env:AGY_I18N_REPO } else { 'Aloira-ai/antigravity-zh-plugin' }
-$ref = if ($env:AGY_I18N_REF) { $env:AGY_I18N_REF } else { 'main' }
+$repo = if ($env:AGY_ZH_REPO) { $env:AGY_ZH_REPO } elseif ($env:AGY_I18N_REPO) { $env:AGY_I18N_REPO } else { 'Aloira-ai/antigravity-zh-plugin' }
+$ref = if ($env:AGY_ZH_REF) { $env:AGY_ZH_REF } elseif ($env:AGY_I18N_REF) { $env:AGY_I18N_REF } else { 'main' }
 $refPath = if ($ref -match '^v\d') { "refs/tags/$ref" } else { "refs/heads/$ref" }
 $archiveUrl = "https://github.com/$repo/archive/$refPath.zip"
 
-$tempRoot = Join-Path $env:TEMP ('agy-i18n-install-' + [Guid]::NewGuid().ToString('N'))
+$tempRoot = Join-Path $env:TEMP ('agy-zh-install-' + [Guid]::NewGuid().ToString('N'))
 $zipPath = Join-Path $tempRoot 'src.zip'
 $extractDir = Join-Path $tempRoot 'src'
 $exitCode = 0

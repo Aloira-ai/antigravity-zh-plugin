@@ -38,8 +38,8 @@ if [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/scripts/install.mjs" ]]; then
   exec "$runtime" "$SCRIPT_DIR/scripts/install.mjs" "$@"
 fi
 
-REPO="${AGY_I18N_REPO:-Aloira-ai/antigravity-zh-plugin}"
-REF="${AGY_I18N_REF:-main}"
+REPO="${AGY_ZH_REPO:-${AGY_I18N_REPO:-Aloira-ai/antigravity-zh-plugin}}"
+REF="${AGY_ZH_REF:-${AGY_I18N_REF:-main}}"
 if [[ "$REF" =~ ^v[0-9] ]]; then
   REF_PATH="refs/tags/$REF"
 else

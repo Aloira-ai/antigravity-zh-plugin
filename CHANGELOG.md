@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0] - 2026-11-24
+
+### Changed
+- **统一对外展示与内部命名**：应用内展示名调整为 **Antigravity 界面汉化**，插件 ID、安装目录、数据目录、技能名（`/agy-zh`）与环境变量前缀（`AGY_ZH_*`）统一为 **`agy-zh`**，与 GitHub 仓库 `antigravity-zh-plugin` 语义对齐（安装/卸载脚本仍兼容 `AGY_I18N_*` 环境变量）。
+
+### Added
+- **检查更新与原地升级体验**：在 [skills/agy-zh/SKILL.md](skills/agy-zh/SKILL.md) 新增对比 GitHub 最新 Release 与本地版本并一键原地升级的工作流，更新 [plugin.json](plugin.json) 推荐提示词实现详情页一键触发检查更新，并在右侧 Aux Pane 顶部版本号旁增加直达 GitHub Releases 的纯点击跳转链接（[lib/web-ui.mjs](lib/web-ui.mjs)）。
+- **旧版个人数据无缝迁移**：[scripts/install.mjs](scripts/install.mjs) 安装 `agy-zh` 时自动从旧版 `plugin_data/agy-i18n` 非破坏式复制 `settings.json` 与 `custom-dictionary.json`，并在检测到旧版 `plugins/agy-i18n` 目录时提示用户在 Customizations 页面卸载旧版。
+
 ## [1.2.0] - 2026-11-24
 
 ### Added

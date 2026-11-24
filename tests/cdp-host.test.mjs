@@ -191,10 +191,10 @@ test('CDP host attaches to hub/swarm targets, handles trusted binding toggles, a
 });
 
 test('install and uninstall manage plugin files safely without touching config.json', async () => {
-  const tempHome = mkdtempSync(join(tmpdir(), 'agy-i18n-home-'));
+  const tempHome = mkdtempSync(join(tmpdir(), 'agy-zh-home-'));
   try {
     const installed = await installI18nPlugin({ home: tempHome });
-    assert.equal(installed.name, 'agy-i18n');
+    assert.equal(installed.name, 'agy-zh');
     assert.equal(installed.replacement, 'directory');
     assert.ok(existsSync(join(installed.destination, 'plugin.json')));
     assert.ok(existsSync(join(installed.destination, 'sidecars', 'i18n', 'sidecar.json')));
@@ -202,13 +202,13 @@ test('install and uninstall manage plugin files safely without touching config.j
     assert.ok(existsSync(join(installed.destination, 'lib', 'community-pairs.json')));
     assert.ok(existsSync(join(installed.destination, 'lib', 'dictionary.mjs')));
     assert.ok(existsSync(join(installed.destination, 'lib', 'i18n-client.js')));
-    assert.ok(existsSync(join(installed.destination, 'skills', 'agy-i18n', 'SKILL.md')));
+    assert.ok(existsSync(join(installed.destination, 'skills', 'agy-zh', 'SKILL.md')));
 
     const configPath = join(tempHome, '.gemini', 'config', 'config.json');
     assert.equal(existsSync(configPath), false, 'installer must never create or modify config.json');
 
     // Create plugin_data to verify --purge behavior
-    const dataDir = join(tempHome, '.gemini', 'antigravity', 'plugin_data', 'agy-i18n');
+    const dataDir = join(tempHome, '.gemini', 'antigravity', 'plugin_data', 'agy-zh');
     mkdirSync(dataDir, { recursive: true });
     writeFileSync(join(dataDir, 'settings.json'), '{"language":"en"}\n', 'utf8');
 
@@ -222,7 +222,7 @@ test('install and uninstall manage plugin files safely without touching config.j
     mkdirSync(installed.destination, { recursive: true });
     writeFileSync(join(installed.destination, 'plugin.json'), '{"name":"other-plugin"}', 'utf8');
     await assert.rejects(() => installI18nPlugin({ home: tempHome }), /其他插件/);
-    assert.throws(() => uninstallI18nPlugin({ home: tempHome, purge: true }), /不属于 agy-i18n/);
+    assert.throws(() => uninstallI18nPlugin({ home: tempHome, purge: true }), /不属于 agy-zh/);
 
     // Clean up unrelated test folder and verify purge
     rmSync(installed.destination, { recursive: true, force: true });
@@ -237,7 +237,7 @@ test('install and uninstall manage plugin files safely without touching config.j
 });
 
 test('install falls back to in-place sync on EPERM directory lock and prunes stale files', async () => {
-  const tempHome = mkdtempSync(join(tmpdir(), 'agy-i18n-eperm-'));
+  const tempHome = mkdtempSync(join(tmpdir(), 'agy-zh-eperm-'));
   try {
     const first = await installI18nPlugin({ home: tempHome });
     const staleFile = join(first.destination, 'stale.txt');
@@ -272,9 +272,9 @@ test('install falls back to in-place sync on EPERM directory lock and prunes sta
 });
 
 test('install falls back to in-place sync on ENOTEMPTY lock and reclaims empty dirs safely', async () => {
-  const tempHome = mkdtempSync(join(tmpdir(), 'agy-i18n-enotempty-'));
+  const tempHome = mkdtempSync(join(tmpdir(), 'agy-zh-enotempty-'));
   try {
-    const dest = join(tempHome, '.gemini', 'config', 'plugins', 'agy-i18n');
+    const dest = join(tempHome, '.gemini', 'config', 'plugins', 'agy-zh');
     mkdirSync(join(dest, 'sidecars'), { recursive: true });
 
     const lockError = () => Object.assign(new Error('ENOTEMPTY: directory not empty'), { code: 'ENOTEMPTY' });
@@ -291,15 +291,45 @@ test('install falls back to in-place sync on ENOTEMPTY lock and reclaims empty d
     assert.ok(existsSync(join(dest, 'plugin.json')));
     assert.ok(existsSync(join(dest, 'lib', 'community-pairs.json')));
 
-    const tempHomeUnknown = mkdtempSync(join(tmpdir(), 'agy-i18n-unknown-'));
+    const tempHomeUnknown = mkdtempSync(join(tmpdir(), 'agy-zh-unknown-'));
     try {
-      const unknownDest = join(tempHomeUnknown, '.gemini', 'config', 'plugins', 'agy-i18n');
+      const unknownDest = join(tempHomeUnknown, '.gemini', 'config', 'plugins', 'agy-zh');
       mkdirSync(unknownDest, { recursive: true });
       writeFileSync(join(unknownDest, 'unrelated.txt'), 'keep me', 'utf8');
       await assert.rejects(() => installI18nPlugin({ home: tempHomeUnknown }), /未知目录/);
     } finally {
       rmSync(tempHomeUnknown, { recursive: true, force: true });
     }
+  } finally {
+    rmSync(tempHome, { recursive: true, force: true });
+  }
+});
+
+test('install migrates legacy agy-i18n data without overwriting existing agy-zh files and detects legacy plugin', async () => {
+  const tempHome = mkdtempSync(join(tmpdir(), 'agy-zh-migrate-'));
+  try {
+    const legacyDataDir = join(tempHome, '.gemini', 'antigravity', 'plugin_data', 'agy-i18n');
+    const legacyPluginDir = join(tempHome, '.gemini', 'config', 'plugins', 'agy-i18n');
+    mkdirSync(legacyDataDir, { recursive: true });
+    mkdirSync(legacyPluginDir, { recursive: true });
+    writeFileSync(join(legacyDataDir, 'settings.json'), '{"language":"en"}\n', 'utf8');
+    writeFileSync(join(legacyDataDir, 'custom-dictionary.json'), '{"Foo":"福"}\n', 'utf8');
+    writeFileSync(join(legacyPluginDir, 'plugin.json'), '{"name":"agy-i18n","version":"1.2.0"}\n', 'utf8');
+
+    const first = await installI18nPlugin({ home: tempHome });
+    assert.equal(first.legacyPluginDetected, true);
+    assert.deepEqual(first.migratedDataFiles.sort(), ['custom-dictionary.json', 'settings.json']);
+
+    const newSettingsPath = join(tempHome, '.gemini', 'antigravity', 'plugin_data', 'agy-zh', 'settings.json');
+    const newDictPath = join(tempHome, '.gemini', 'antigravity', 'plugin_data', 'agy-zh', 'custom-dictionary.json');
+    assert.equal(readFileSync(newSettingsPath, 'utf8'), '{"language":"en"}\n');
+    assert.equal(readFileSync(newDictPath, 'utf8'), '{"Foo":"福"}\n');
+    assert.ok(existsSync(legacyDataDir), 'legacy data dir must stay intact');
+
+    writeFileSync(newSettingsPath, '{"language":"zh-CN"}\n', 'utf8');
+    const second = await installI18nPlugin({ home: tempHome });
+    assert.deepEqual(second.migratedDataFiles, []);
+    assert.equal(readFileSync(newSettingsPath, 'utf8'), '{"language":"zh-CN"}\n', 'existing agy-zh settings must not be overwritten');
   } finally {
     rmSync(tempHome, { recursive: true, force: true });
   }

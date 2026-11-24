@@ -692,7 +692,7 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     port: 0,
     allowEphemeral: true,
     token: 'secret-token',
-    version: '1.2.0',
+    version: '1.3.0',
     getStatus: buildSnapshot,
     onSetSettings: async patch => {
       if (patch.language && !['zh-CN', 'en'].includes(patch.language)) {
@@ -732,6 +732,8 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     assert.ok(html.includes('id="custom-en"'));
     assert.ok(html.includes('id="custom-zh"'));
     assert.ok(html.includes('id="custom-add-btn"'));
+    assert.ok(html.includes('https://github.com/Aloira-ai/antigravity-zh-plugin/releases'));
+    assert.ok(html.includes('Antigravity 界面汉化'));
 
     const unauth = await fetch(`${base}/api/status`);
     assert.equal(unauth.status, 401);

@@ -1,4 +1,4 @@
-# Agy i18n 项目交接文档
+# Antigravity 界面汉化 (`agy-zh`) 项目交接文档
 
 > 供新开会话的 Agent 快速恢复完整上下文。阅读本文件与 `README.md` 即可直接继续开发、补词条、测试与部署，无需回溯上一条会话历史。
 
@@ -6,7 +6,7 @@
 
 ## 1. 项目简介与设计红线
 
-**Agy i18n（界面汉化）** 是从 `WhiteBr1ck/agy-powertools`（MIT License）思路中剥离重构的 **Antigravity 2.0 极简纯汉化 Sidecar 插件**，零第三方运行时依赖，提供 **简体中文 / English** 实时切换（支持右侧 Aux Pane 分段按钮 + 可选主窗口右下角可拖动 `中 / EN` 悬浮胶囊）。
+**Antigravity 界面汉化（`agy-zh`）** 是从 `WhiteBr1ck/agy-powertools`（MIT License）思路中剥离重构的 **Antigravity 2.0 极简纯汉化 Sidecar 插件**（GitHub 仓库：`Aloira-ai/antigravity-zh-plugin`），零第三方运行时依赖，提供 **简体中文 / English** 实时切换（支持右侧 Aux Pane 分段按钮 + 可选主窗口右下角可拖动 `中 / EN` 悬浮胶囊）。
 
 ### 绝对不能越过的架构红线
 
@@ -16,20 +16,20 @@
    - 不解码 Protobuf、不扫描 `conversations/*.db` SQLite；
    - 不拦截发送请求、不往模型 Prompt 注入任何系统规则；
    - 不读写系统凭据库（Credential Manager / Keychain）；
-   - 不包含自动更新下载器、不发任何外部网络请求（运行时严格只连 `127.0.0.1` 回环地址）。
+   - 不包含自动更新下载器、不发任何外部网络请求（运行时严格只连 `127.0.0.1` 回环地址；Web UI 顶部版本号链接仅为用户提供浏览器跳转）。
 3. **不碰用户配置与系统快捷方式**：
    - `scripts/install.mjs` / `scripts/uninstall.mjs` **绝不**修改 `~/.gemini/config/config.json`，也**绝不**自动改写桌面/开始菜单快捷方式；
-   - 插件启停统一由用户在 Antigravity 的 `Customizations` 界面中操作（链接 `[Agy i18n (界面汉化)](customization://agy-i18n)`）；
+   - 插件启停统一由用户在 Antigravity 的 `Customizations` 界面中操作（链接 `[Antigravity 界面汉化](customization://agy-zh)`）；
    - `--remote-debugging-port=0` 启动参数由用户自行保留在快捷方式中。
 
 ---
 
 ## 2. 当前进度与本机环境
 
-- **插件版本**：`1.2.0`（`plugin.json` / `package.json`）
-- **源码工作区**：仓库根目录（`agy-i18n/`）
-- **已安装插件目录**：`~/.gemini/config/plugins/agy-i18n`（Windows 为 `%USERPROFILE%\.gemini\config\plugins\agy-i18n`）
-- **用户设置与自定义词典目录**：`~/.gemini/antigravity/plugin_data/agy-i18n/`（Windows 为 `%USERPROFILE%\.gemini\antigravity\plugin_data\agy-i18n\`）
+- **插件版本**：`1.3.0`（`plugin.json` `name: "agy-zh"`、`displayName: "Antigravity 界面汉化"` / `package.json`）
+- **源码工作区**：本地开发目录（GitHub 仓库为 `Aloira-ai/antigravity-zh-plugin`）
+- **已安装插件目录**：`~/.gemini/config/plugins/agy-zh`（Windows 为 `%USERPROFILE%\.gemini\config\plugins\agy-zh`）
+- **用户设置与自定义词典目录**：`~/.gemini/antigravity/plugin_data/agy-zh/`（Windows 为 `%USERPROFILE%\.gemini\antigravity\plugin_data\agy-zh\`；安装脚本会自动从旧版 `agy-i18n` 非破坏式迁移）
   - `settings.json`：`{ "language": "zh-CN" | "en", "floatingButton": boolean }`
   - `custom-dictionary.json`：可选用户自定义覆盖词典（`{ "英文原文": "中文译文" }`，最多 5000 条）
 - **Node.js 运行环境（重要）**：
@@ -41,30 +41,30 @@
 - **当前词典与测试状态**：
   - `BUILTIN_PAIRS` 共 **2,703 条**（960 条裁剪后的 `agy-powertools` MIT 词条 + 263 条 Antigravity 2.0–2.34 原生补充词条 + 1,480 条精选 `zhangsubo/antigravity-chinese-patch` MIT 词条，已去重）；
   - 动态句式 `translateDynamic` 覆盖套餐/积分/额度重置/欢迎问候/工具与文件数/相对时间（`... ago`）/思考与工作耗时（`Thought for ...`、`Worked for ...`、`Working for ...`、`Running for ...`）/执行步骤树汇总与单节点动作文件（`Explored 2 files, 1 search`、`Analyzed ...` 等）/权限与 SSH/计数单位/版本号等；
-  - 单元测试 `tests/i18n.test.mjs` + `tests/cdp-host.test.mjs` 共 **10/10 全部通过**。
+  - 单元测试 `tests/i18n.test.mjs` + `tests/cdp-host.test.mjs` 共 **11/11 全部通过**。
 
 ---
 
 ## 3. 文件结构一览
 
 ```text
-agy-i18n/
+antigravity-zh-plugin/
 ├── .gitignore
 ├── .gitattributes
 ├── .github/workflows/
 │   └── test.yml               # 跨平台 CI（Ubuntu / macOS / Windows，Node 22 & 24）
-├── plugin.json                # Antigravity 插件清单（name: "agy-i18n"）
+├── plugin.json                # Antigravity 插件清单（name: "agy-zh", displayName: "Antigravity 界面汉化"）
 ├── package.json               # 包信息（type: "module", engines: >=22.13, 无第三方依赖）
 ├── LICENSE                    # MIT 协议（含 WhiteBr1ck/agy-powertools、zhangsubo/antigravity-chinese-patch、guuguo/antigravity-zh-launcher 致谢）
-├── README.md                  # 用户安装、启动参数、自定义词典与卸载说明
+├── README.md                  # 用户安装、启动参数、自定义词典、更新与卸载说明
 ├── CHANGELOG.md               # 版本变更记录
 ├── HANDOFF.md                 # 本交接文档
 ├── install.ps1 / uninstall.ps1# Windows 远程一行安装与独立安全卸载脚本（自动回退 agy-node.cmd）
 ├── install.sh / uninstall.sh  # macOS / Linux 远程一行安装与独立安全卸载脚本（自动回退 agy-node）
 ├── assets/
 │   └── logo.svg               # 128x128 插件图标（中/A）
-├── skills/agy-i18n/
-│   └── SKILL.md               # 内置助手技能（检查汉化状态、管理自定义词典、引导调试端口配置）
+├── skills/agy-zh/
+│   └── SKILL.md               # 内置助手技能（检查汉化状态、检查更新/原地升级、管理自定义词典、引导调试端口配置）
 ├── sidecars/i18n/
 │   ├── sidecar.json           # Sidecar 配置（Aux Pane Web UI: "界面汉化"）
 │   └── main.mjs               # Sidecar 入口：串联 settings、dictionary、cdp-host、web-ui
@@ -77,11 +77,11 @@ agy-i18n/
 │   ├── cdp-host.mjs           # 轮询 DevToolsActivePort、注入 Hub 主窗口与 Swarm iframe、__agyI18nHost 绑定
 │   └── web-ui.mjs             # 127.0.0.1 Sidecar Aux Pane HTTP 服务（加载 /preload.js、token 鉴权、中/英按钮与可视化词典编辑）
 ├── scripts/
-│   ├── install.mjs            # 安全安装到 ~/.gemini/config/plugins/agy-i18n（带锁定重试与原地回退）
+│   ├── install.mjs            # 安全安装到 ~/.gemini/config/plugins/agy-zh（含旧版 agy-i18n 数据迁移、锁定重试与原地回退）
 │   └── uninstall.mjs          # 安全卸载（默认保留 settings/自定义词典，--purge 一并清理）
 └── tests/
     ├── i18n.test.mjs          # 词典完整性、设置存储、node:vm DOM 模拟、Aux Pane HTTP 接口与脚本序列化测试
-    └── cdp-host.test.mjs      # Target 匹配、Mock CDP 注入与上下文校验、安装/卸载及 EPERM/ENOTEMPTY 回退测试
+    └── cdp-host.test.mjs      # Target 匹配、Mock CDP 注入与上下文校验、安装/卸载、旧版迁移及 EPERM/ENOTEMPTY 回退测试
 ```
 
 ---
@@ -98,6 +98,7 @@ agy-i18n/
    - `TEXT_EXCLUDED_SELECTOR` 排除 `textarea`、`input`、`[contenteditable]`、`pre`、`code`、`[data-testid="planner-response-text"]`、`[data-testid="user-input-step"]`、`[data-agy-i18n-ui]` 等，防止破坏用户输入与聊天正文；
    - `ATTR_EXCLUDED_SELECTOR` **不能**包含 `textarea` 和 `input`，否则搜索框的 `placeholder` 无法翻译；
    - 绝不翻译 `aria-label`（避免影响客户端或辅助功能依赖的选择器）。
+   - 内部 DOM 属性/全局命名（`data-agy-i18n-*`、`__agyI18n`、`agy-i18n-pill-pos`）与 `sidecars/i18n/` 目录保持不变，避免破坏已有浏览器状态和悬浮胶囊位置记忆。
 4. **客户端查找规范化规则（`lib/i18n-client.js`）**：
    - 优先级：`zhMap` 精确匹配 → 规整空白与弯引号（`norm`）后匹配（含 `...` ↔ `…` 互转）→ 多词短语（`norm.includes(' ') && norm.length >= 5`）大小写无关匹配 `zhLowerMap` → 尾冒号词干匹配（如 `Model:` → `模型：`）→ `translateDynamic(norm)`。
    - 不要对单词（无空格或长度 `< 5`）开启全局大小写无关匹配，以防误伤代码或专有名词缩写。
@@ -106,7 +107,7 @@ agy-i18n/
 6. **热更新生效方式**：
    - 每次修改仓库源码后，不会自动同步到已安装插件目录，必须重新执行 `install.ps1`（或 `bash ./install.sh`）；
    - 仅修改用户的 `custom-dictionary.json` 时，可在右侧 **界面汉化** 面板直接点 **重新加载词典** 热更新；
-   - 修改了内置 `dictionary.mjs` / `i18n-client.js` / `cdp-host.mjs` 并重装后，需在 `[Agy i18n (界面汉化)](customization://agy-i18n)` 停用再重新启用插件（或带 `--remote-debugging-port=0` 重启 Antigravity）让 Sidecar 进程重载新代码。
+   - 修改了内置 `dictionary.mjs` / `i18n-client.js` / `cdp-host.mjs` 并重装后，需在 `[Antigravity 界面汉化](customization://agy-zh)` 停用再重新启用插件（或带 `--remote-debugging-port=0` 重启 Antigravity）让 Sidecar 进程重载新代码。
 
 ---
 
@@ -119,13 +120,13 @@ $root = (Get-Location).Path
 # 1. 语法检查全部 JS/MJS
 Get-ChildItem $root -Recurse -Include *.mjs,*.js | ForEach-Object { & $node --check $_.FullName }
 
-# 2. 运行全部单元测试（预期 10/10 通过）
+# 2. 运行全部单元测试（预期 11/11 通过）
 & $node --test "$root\tests\i18n.test.mjs" "$root\tests\cdp-host.test.mjs"
 
 # 3. 校验全部 JSON（注意 PowerShell 5.1 的 ConvertFrom-Json 默认区分不了大小写键名，lib/community-pairs.json 请用 Node 校验）
 & $node -e "import { readFileSync } from 'node:fs'; for (const p of ['plugin.json','package.json','sidecars/i18n/sidecar.json','lib/community-pairs.json']) JSON.parse(readFileSync(p, 'utf8'));"
 
-# 4. 重新安装到 ~/.gemini/config/plugins/agy-i18n
+# 4. 重新安装到 ~/.gemini/config/plugins/agy-zh
 powershell -NoProfile -ExecutionPolicy Bypass -File "$root\install.ps1"
 ```
 

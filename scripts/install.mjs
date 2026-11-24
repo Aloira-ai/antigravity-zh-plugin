@@ -5,6 +5,8 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { manualLaunchCommand } from '../lib/paths.mjs';
 
+const PLUGIN_ID = 'agy-zh';
+const LEGACY_PLUGIN_ID = 'agy-i18n';
 const RUNTIME_ITEMS = ['plugin.json', 'package.json', 'LICENSE', 'README.md', 'assets', 'lib', 'sidecars', 'skills'];
 const LOCK_ERROR_CODES = new Set(['EPERM', 'EACCES', 'EBUSY', 'ENOTEMPTY']);
 const pause = ms => new Promise(resolvePause => setTimeout(resolvePause, ms));
@@ -109,8 +111,55 @@ function hasAnyFiles(dir) {
   return false;
 }
 
+function migrateLegacyData(geminiRoot) {
+  const legacyDataDir = join(geminiRoot, 'antigravity', 'plugin_data', LEGACY_PLUGIN_ID);
+  const dataDir = join(geminiRoot, 'antigravity', 'plugin_data', PLUGIN_ID);
+  const migratedDataFiles = [];
+
+  if (!existsSync(legacyDataDir)) {
+    return { dataDir, migratedDataFiles };
+  }
+
+  assertOwnedPath(geminiRoot, legacyDataDir);
+  assertNoSymlinks(legacyDataDir);
+
+  for (const filename of ['settings.json', 'custom-dictionary.json']) {
+    const src = join(legacyDataDir, filename);
+    if (!existsSync(src) || !lstatSync(src).isFile()) continue;
+    const dst = join(dataDir, filename);
+    if (existsSync(dst)) continue;
+    assertOwnedPath(geminiRoot, dataDir);
+    mkdirSync(dataDir, { recursive: true });
+    assertNoSymlinks(dataDir);
+    cpSync(src, dst, { force: false });
+    migratedDataFiles.push(filename);
+  }
+
+  return { dataDir, migratedDataFiles };
+}
+
+function detectLegacyPlugin(pluginsDir) {
+  const legacyPluginDir = join(pluginsDir, LEGACY_PLUGIN_ID);
+  const legacyManifestPath = join(legacyPluginDir, 'plugin.json');
+  if (!existsSync(legacyPluginDir) || !existsSync(legacyManifestPath)) {
+    return { legacyPluginDetected: false, legacyPluginDir };
+  }
+  try {
+    if (lstatSync(legacyPluginDir).isSymbolicLink() || lstatSync(legacyManifestPath).isSymbolicLink()) {
+      return { legacyPluginDetected: false, legacyPluginDir };
+    }
+    const existing = JSON.parse(readFileSync(legacyManifestPath, 'utf8'));
+    return {
+      legacyPluginDetected: existing?.name === LEGACY_PLUGIN_ID,
+      legacyPluginDir
+    };
+  } catch {
+    return { legacyPluginDetected: false, legacyPluginDir };
+  }
+}
+
 /**
- * Install agy-i18n runtime files into <home>/.gemini/config/plugins/agy-i18n
+ * Install agy-zh runtime files into <home>/.gemini/config/plugins/agy-zh
  * without modifying config.json or OS shortcuts.
  */
 export async function installI18nPlugin({
@@ -125,11 +174,11 @@ export async function installI18nPlugin({
   const manifestPath = join(sourceRoot, 'plugin.json');
   if (!existsSync(manifestPath)) throw new Error('缺少 plugin.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  if (manifest?.name !== 'agy-i18n') throw new Error('plugin.json 中的 name 必须是 agy-i18n');
+  if (manifest?.name !== PLUGIN_ID) throw new Error(`plugin.json 中的 name 必须是 ${PLUGIN_ID}`);
 
   const geminiRoot = join(resolve(home), '.gemini');
   const pluginsDir = join(geminiRoot, 'config', 'plugins');
-  const destination = join(pluginsDir, 'agy-i18n');
+  const destination = join(pluginsDir, PLUGIN_ID);
   assertOwnedPath(geminiRoot, destination);
 
   if (existsSync(destination)) {
@@ -137,7 +186,7 @@ export async function installI18nPlugin({
     const existingManifestPath = join(destination, 'plugin.json');
     if (existsSync(existingManifestPath)) {
       const existing = JSON.parse(readFileSync(existingManifestPath, 'utf8'));
-      if (existing?.name !== 'agy-i18n') {
+      if (existing?.name !== PLUGIN_ID) {
         throw new Error('安装位置已存在其他插件，已中止安装');
       }
     } else if (hasAnyFiles(destination)) {
@@ -146,8 +195,8 @@ export async function installI18nPlugin({
   }
 
   mkdirSync(pluginsDir, { recursive: true });
-  const stageDir = join(pluginsDir, `.agy-i18n-staging-${randomUUID()}`);
-  const backupDir = join(pluginsDir, `.agy-i18n-backup-${randomUUID()}`);
+  const stageDir = join(pluginsDir, `.${PLUGIN_ID}-staging-${randomUUID()}`);
+  const backupDir = join(pluginsDir, `.${PLUGIN_ID}-backup-${randomUUID()}`);
   assertOwnedPath(geminiRoot, stageDir);
   assertOwnedPath(geminiRoot, backupDir);
 
@@ -199,11 +248,18 @@ export async function installI18nPlugin({
     }
   }
 
+  const { dataDir, migratedDataFiles } = migrateLegacyData(geminiRoot);
+  const { legacyPluginDetected, legacyPluginDir } = detectLegacyPlugin(pluginsDir);
+
   return {
     name: manifest.name,
     version: manifest.version,
     destination,
-    replacement
+    replacement,
+    dataDir,
+    migratedDataFiles,
+    legacyPluginDetected,
+    legacyPluginDir
   };
 }
 
@@ -226,10 +282,16 @@ if (isMain) {
     if (args.includes('--json')) {
       console.log(JSON.stringify(result));
     } else {
-      console.log(`已安装 Agy i18n v${result.version} -> ${result.destination}`);
+      console.log(`已安装 Antigravity 界面汉化 (${result.name}) v${result.version} -> ${result.destination}`);
+      if (result.migratedDataFiles.length > 0) {
+        console.log(`已自动从旧版 ${LEGACY_PLUGIN_ID} 迁移个人数据 (${result.migratedDataFiles.join(', ')}) -> ${result.dataDir}`);
+      }
+      if (result.legacyPluginDetected) {
+        console.log(`提示：检测到旧版插件目录 ${result.legacyPluginDir}，请在 Antigravity 的 Customizations → 已安装 中卸载旧版 "Agy i18n"，避免新旧插件同时运行。`);
+      }
       console.log('说明：本安装器不会修改 config.json 或您的系统快捷方式。');
       console.log('下一步：');
-      console.log('1. 在 Antigravity 的 Customizations 页面中启用 "Agy i18n" 插件（及其 Sidecar）。');
+      console.log('1. 在 Antigravity 的 Customizations 页面中启用 "Antigravity 界面汉化" 插件（及其 Sidecar）。');
       console.log('2. 请确保使用调试参数启动 Antigravity：');
       console.log(`   ${manualLaunchCommand({ home })}`);
     }

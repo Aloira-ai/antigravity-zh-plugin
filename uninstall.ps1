@@ -26,7 +26,7 @@ if (-not $runtime) {
 
 $extraArgs = @()
 if ($Arguments) { $extraArgs += $Arguments }
-if ($env:AGY_I18N_PURGE -eq '1' -and ($extraArgs -notcontains '--purge')) {
+if (($env:AGY_ZH_PURGE -eq '1' -or $env:AGY_I18N_PURGE -eq '1') -and ($extraArgs -notcontains '--purge')) {
   $extraArgs += '--purge'
 }
 
@@ -73,12 +73,12 @@ function assertNoSymlinks(target) {
 const args = process.argv.slice(2);
 const homeIdx = args.indexOf('--home');
 const home = homeIdx >= 0 ? args[homeIdx + 1] : homedir();
-const purge = args.includes('--purge') || process.env.AGY_I18N_PURGE === '1';
+const purge = args.includes('--purge') || process.env.AGY_ZH_PURGE === '1' || process.env.AGY_I18N_PURGE === '1';
 
 const geminiRoot = join(resolve(home), '.gemini');
-const destination = join(geminiRoot, 'config', 'plugins', 'agy-i18n');
-const dataDir = join(geminiRoot, 'antigravity', 'plugin_data', 'agy-i18n');
-const sidecarDir = join(geminiRoot, 'antigravity', 'sidecar_data', 'agy-i18n');
+const destination = join(geminiRoot, 'config', 'plugins', 'agy-zh');
+const dataDir = join(geminiRoot, 'antigravity', 'plugin_data', 'agy-zh');
+const sidecarDir = join(geminiRoot, 'antigravity', 'sidecar_data', 'agy-zh');
 const legacySidecarDir = join(sidecarDir, 'i18n');
 
 let removedPlugin = false;
@@ -90,7 +90,7 @@ if (existsSync(destination)) {
   const manifestPath = join(destination, 'plugin.json');
   if (!existsSync(manifestPath)) throw new Error('目标目录缺少 plugin.json，无法确认归属');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  if (manifest?.name !== 'agy-i18n') throw new Error('目标目录不属于 agy-i18n，已取消删除');
+  if (manifest?.name !== 'agy-zh') throw new Error('目标目录不属于 agy-zh，已取消删除');
   rmSync(destination, { recursive: true, force: true, maxRetries: 6, retryDelay: 100 });
   removedPlugin = true;
 }
@@ -109,12 +109,12 @@ if (purge) {
 if (args.includes('--json')) {
   console.log(JSON.stringify({ removedPlugin, purgedData, destination }));
 } else {
-  console.log(removedPlugin ? `已卸载插件目录：${destination}` : '未检测到已安装的 Agy i18n 插件目录。');
-  console.log(purgedData ? '已清理插件配置与本地词典数据。' : '已保留个人设置与自定义词典（如需一并清理请加 --purge 或设置 AGY_I18N_PURGE=1）。');
+  console.log(removedPlugin ? `已卸载插件目录：${destination}` : '未检测到已安装的 Antigravity 界面汉化 (agy-zh) 插件目录。');
+  console.log(purgedData ? '已清理插件配置与本地词典数据。' : '已保留个人设置与自定义词典（如需一并清理请加 --purge 或设置 AGY_ZH_PURGE=1）。');
 }
 '@
 
-$tmpMjs = Join-Path $env:TEMP ('agy-i18n-uninstall-' + [Guid]::NewGuid().ToString('N') + '.mjs')
+$tmpMjs = Join-Path $env:TEMP ('agy-zh-uninstall-' + [Guid]::NewGuid().ToString('N') + '.mjs')
 $exitCode = 0
 try {
   [System.IO.File]::WriteAllText($tmpMjs, $inlineJs, [System.Text.UTF8Encoding]::new($false))
