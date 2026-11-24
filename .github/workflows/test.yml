@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} (Node ${{ matrix.node-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Check shell scripts syntax
+        if: runner.os != 'Windows'
+        run: bash -n install.sh uninstall.sh
+      - name: Syntax check JS/MJS and validate JSON
+        run: |
+          node -e "
+          const { execFileSync } = require('node:child_process');
+          const { readdirSync, readFileSync } = require('node:fs');
+          const { join } = require('node:path');
+          function walk(dir) {
+            for (const entry of readdirSync(dir, { withFileTypes: true })) {
+              if (entry.name === '.git' || entry.name === 'node_modules') continue;
+              const full = join(dir, entry.name);
+              if (entry.isDirectory()) walk(full);
+              else if (/\.(?:m?js)$/.test(entry.name)) execFileSync(process.execPath, ['--check', full], { stdio: 'inherit' });
+            }
+          }
+          walk('.');
+          for (const p of ['plugin.json', 'package.json', 'sidecars/i18n/sidecar.json', 'lib/community-pairs.json']) {
+            JSON.parse(readFileSync(p, 'utf8'));
+          }
+          console.log('Syntax and JSON checks passed');
+          "
+      - name: Run unit tests
+        run: node --test tests/i18n.test.mjs tests/cdp-host.test.mjs

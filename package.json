@@ -1,0 +1,22 @@
+{
+  "name": "agy-i18n",
+  "version": "1.1.0",
+  "description": "Minimal Simplified Chinese / English pure-DOM UI localizer plugin for Antigravity 2.0.",
+  "private": true,
+  "license": "MIT",
+  "author": "Aloira-ai",
+  "homepage": "https://github.com/Aloira-ai/antigravity-zh-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aloira-ai/antigravity-zh-plugin.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "install:local": "node scripts/install.mjs",
+    "uninstall:local": "node scripts/uninstall.mjs"
+  }
+}
