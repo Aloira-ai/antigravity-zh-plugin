@@ -1,6 +1,6 @@
 {
   "name": "agy-zh",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Minimal Simplified Chinese / English pure-DOM UI localizer plugin for Antigravity 2.0.",
   "private": true,
   "license": "MIT",

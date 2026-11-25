@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.1] - 2026-11-25
+
+### Added
+- **适配 Antigravity Desktop 2.35.x（含 2.35.1 实测）**：
+  - 在 [lib/community-pairs.json](lib/community-pairs.json) 同步 163 条 Antigravity 2.35 新增桌面端与 Swarm「加载更早消息」中文词条（累计 1,643 条，MIT），并在 [lib/dictionary.mjs](lib/dictionary.mjs) `EXTRA_PAIRS` 补充 41 条 Swarm 视图、媒体保存与实测 UI 词条（含 `Extra High`、`Leaving Soon`），去重后内置词典达 **2,907 条**。
+  - 在 [lib/dictionary.mjs](lib/dictionary.mjs) `translateDynamic` 新增 11 条动态句式规则，覆盖移动对话确认弹窗、插件权限撤销与授权范围、语音听写语言检索、Swarm 加载更早消息进度/重试/失败提示、`N waiting` 待处理计数以及 `<Model> <Effort>` 思考深度标签。
+
+### Fixed
+- **修复同版本重载跳过注入新规则的问题**：在 [lib/cdp-host.mjs](lib/cdp-host.mjs) 与 [lib/i18n-client.js](lib/i18n-client.js) 增加基于脚本内容哈希的 `buildId` 校验，解决 Windows 下同版本号重装或重启 Sidecar 时沿用页面内旧版 `translateDynamic` / 客户端脚本的问题。
+- **加固 2.35.x DOM 防误伤保护**：在 [lib/i18n-client.js](lib/i18n-client.js) 补充悬停卡片标题/描述、权限触发命令（`permission-trigger-command` 内 `.font-mono`）、问答自由回答、插件权限名称、语音听写语言原名与远程克隆项目条目排除；同时收紧 `DYNAMIC_TITLE_CONTAINERS` 判定，避免 `[data-testid="breadcrumb-segment"][role="button"]` 误翻顶部面包屑会话标题。
+
 ## [1.3.0] - 2026-11-24
 
 ### Changed

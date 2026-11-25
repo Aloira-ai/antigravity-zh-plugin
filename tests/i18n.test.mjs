@@ -252,6 +252,16 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(map.get('+ Add Hook'), '+ 添加钩子');
   assert.equal(map.get('Access rules'), '访问规则');
   assert.equal(map.get('Orchestrator'), '编排器（Orchestrator）');
+  assert.equal(map.get('Inbox Mode'), '收件箱模式');
+  assert.equal(map.get('Auto-Resolve'), '自动解决');
+  assert.equal(map.get('Plugin permissions'), '插件权限');
+  assert.equal(map.get('Dictation languages'), '听写语言');
+  assert.equal(map.get('Yes, allow for this task'), '是，仅在本次任务中允许');
+  assert.equal(map.get('Could not load earlier posts'), '无法加载更早消息');
+  assert.equal(map.get('Save Image As...'), '图片另存为…');
+  assert.equal(map.get('Conversation Log'), '对话日志');
+  assert.equal(map.get('Extra High'), '极高');
+  assert.equal(map.get('Leaving Soon'), '即将下线');
 
   assert.equal(translateDynamic('Your Plan: Ultra'), '当前套餐：Ultra');
   assert.equal(translateDynamic('Resets in 2h 30m'), '2 小时 30 分钟后重置');
@@ -291,7 +301,22 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(translateDynamic('4 subagents'), '4 个子智能体');
   assert.equal(translateDynamic('2 warnings'), '2 条警告');
   assert.equal(translateDynamic('Version 2.34.0'), '版本 2.34.0');
+  assert.equal(translateDynamic('Version 2.35.1'), '版本 2.35.1');
   assert.equal(translateDynamic('+3 more'), '还有 3 项');
+  assert.equal(translateDynamic('Move this conversation to "My Project"?'), '要将此对话移至“My Project”吗？');
+  assert.equal(translateDynamic('Revoke all: GitHub'), '全部撤销：GitHub');
+  assert.equal(translateDynamic('All 3 will be revoked. The plugin will ask before doing this again.'), '将撤销全部 3 项权限。之后此插件在执行相关操作前会重新向你询问。');
+  assert.equal(translateDynamic('Allowed in demo-repo'), '已在 demo-repo 中允许');
+  assert.equal(translateDynamic('Allowed in this conversation'), null);
+  assert.equal(translateDynamic('No matching languages for "xyz"'), '未找到与“xyz”匹配的语言');
+  assert.equal(translateDynamic('Show 20 earlier posts (45 older)'), '显示更早的 20 条消息（还有 45 条较早消息）');
+  assert.equal(translateDynamic('Loading earlier posts… (45 older)'), '正在加载更早消息…（还有 45 条较早消息）');
+  assert.equal(translateDynamic('Retry loading 20 earlier posts'), '重试加载 20 条更早消息');
+  assert.equal(translateDynamic('20 earlier posts could not be loaded.'), '有 20 条更早消息未能加载。');
+  assert.equal(translateDynamic('2 waiting'), '2 项待处理');
+  assert.equal(translateDynamic('Gemini 4 Neon Extra High'), 'Gemini 4 Neon 极高');
+  assert.equal(translateDynamic('Claude Opus 5.5 Medium'), 'Claude Opus 5.5 中');
+  assert.equal(translateDynamic('GPT-OSS 120B (Medium)'), null);
 });
 
 test('settings store validates, persists atomically, and merges custom dictionary', () => {
@@ -441,6 +466,40 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   const feedbackText = new MockText('Send feedback as alice@example.com');
   feedbackBtn.appendChild(feedbackText);
 
+  const breadcrumbSegment = new MockElement('span');
+  breadcrumbSegment.setAttribute('data-testid', 'breadcrumb-segment');
+  breadcrumbSegment.setAttribute('role', 'button');
+  const breadcrumbLabel = new MockElement('span');
+  const breadcrumbText = new MockText('Settings');
+  breadcrumbLabel.appendChild(breadcrumbText);
+  breadcrumbSegment.appendChild(breadcrumbLabel);
+
+  const permTriggerCmd = new MockElement('div');
+  permTriggerCmd.setAttribute('data-testid', 'permission-trigger-command');
+  const permLabel = new MockElement('span');
+  const permLabelText = new MockText('Permission');
+  permLabel.appendChild(permLabelText);
+  const permMono = new MockElement('span');
+  permMono.setAttribute('class', 'font-mono');
+  const permMonoText = new MockText('Settings');
+  permMono.appendChild(permMonoText);
+  permTriggerCmd.appendChild(permLabel);
+  permTriggerCmd.appendChild(permMono);
+
+  const dictationOption = new MockElement('div');
+  dictationOption.setAttribute('data-testid', 'dictation-language-option-en');
+  const dictationSpan = new MockElement('span');
+  const dictationText = new MockText('English');
+  dictationSpan.appendChild(dictationText);
+  dictationOption.appendChild(dictationSpan);
+
+  const coordHoverTitle = new MockElement('div');
+  coordHoverTitle.setAttribute('data-testid', 'coordinator-hover-card-title');
+  const coordHoverSpan = new MockElement('span');
+  const coordHoverText = new MockText('Settings');
+  coordHoverSpan.appendChild(coordHoverText);
+  coordHoverTitle.appendChild(coordHoverSpan);
+
   sidebar.appendChild(settingsBtn);
   sidebar.appendChild(searchInput);
   sidebar.appendChild(multilineBtn);
@@ -457,6 +516,10 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   sidebar.appendChild(convRow);
   sidebar.appendChild(accountBtn);
   sidebar.appendChild(feedbackBtn);
+  sidebar.appendChild(breadcrumbSegment);
+  sidebar.appendChild(permTriggerCmd);
+  sidebar.appendChild(dictationOption);
+  sidebar.appendChild(coordHoverTitle);
 
   const chatReply = new MockElement('div');
   chatReply.setAttribute('data-testid', 'planner-response-text');
@@ -538,6 +601,11 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   assert.equal(accountSpan1Text.nodeValue, 'Default');
   assert.equal(accountSpan2Text.nodeValue, 'alice@example.com');
   assert.equal(feedbackText.nodeValue, '以 alice@example.com 提交反馈');
+  assert.equal(breadcrumbText.nodeValue, 'Settings');
+  assert.equal(permLabelText.nodeValue, '权限');
+  assert.equal(permMonoText.nodeValue, 'Settings');
+  assert.equal(dictationText.nodeValue, 'English');
+  assert.equal(coordHoverText.nodeValue, 'Settings');
 
   // Simulate React updating split text child node
   multiNum.nodeValue = '13s';
@@ -636,13 +704,24 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
   const splitDur = new MockText('5s');
   splitLabel.appendChild(splitPrefix);
   splitLabel.appendChild(splitDur);
+  const swarmEarlierLabel = new MockElement('span');
+  const swarmEarlierTxt = new MockText('Show 20 earlier posts (45 older)');
+  swarmEarlierLabel.appendChild(swarmEarlierTxt);
+  const modelEffortLabel = new MockElement('span');
+  modelEffortLabel.setAttribute('class', 'opacity-70');
+  const modelEffortLead = new MockText(' ');
+  const modelEffortTxt = new MockText('Gemini 4 Neon Extra High');
+  modelEffortLabel.appendChild(modelEffortLead);
+  modelEffortLabel.appendChild(modelEffortTxt);
   doc.body.appendChild(label);
   doc.body.appendChild(comboLabel);
   doc.body.appendChild(actionLabel);
   doc.body.appendChild(splitLabel);
+  doc.body.appendChild(swarmEarlierLabel);
+  doc.body.appendChild(modelEffortLabel);
 
   const script = buildInjectionScript({
-    version: '1.1.0',
+    version: '1.3.1',
     language: 'zh-CN',
     floatingButton: false,
     pairs: BUILTIN_PAIRS,
@@ -651,24 +730,51 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
   });
   const vmWin = { ...win };
   vmWin.top = vmWin;
+  let staleDisposed = false;
   const ctx = vm.createContext({
     document: doc,
     window: vmWin,
     location: { origin: 'https://127.0.0.1:8443', href: 'https://127.0.0.1:8443/c/1' },
     MutationObserver: MockMutationObserver,
-    NodeFilter: { SHOW_ELEMENT: 1, SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2, FILTER_SKIP: 3 }
+    NodeFilter: { SHOW_ELEMENT: 1, SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2, FILTER_SKIP: 3 },
+    __agyI18n: {
+      version: '1.3.1',
+      dispose() {
+        staleDisposed = true;
+      }
+    }
   });
   ctx.globalThis = ctx;
   vm.runInContext(script, ctx);
+
+  assert.equal(staleDisposed, true);
+  assert.match(ctx.__agyI18n.buildId, /^[0-9a-f]{12}$/);
+
+  const freshInstance = ctx.__agyI18n;
+  let freshDisposed = false;
+  const origDispose = freshInstance.dispose;
+  freshInstance.dispose = () => {
+    freshDisposed = true;
+    origDispose();
+  };
+  vm.runInContext(script, ctx);
+  assert.equal(freshDisposed, false);
+  assert.equal(ctx.__agyI18n, freshInstance);
+  freshInstance.dispose = origDispose;
 
   assert.equal(txt.nodeValue, '思考了 1 分钟 20 秒');
   assert.equal(comboTxt.nodeValue, '已探索 2 个文件、1 次搜索');
   assert.equal(actionTxt.nodeValue, '已分析 dictionary.mjs #L1-120');
   assert.equal(splitPrefix.nodeValue, '思考了 5 秒');
   assert.equal(splitDur.nodeValue, '');
+  assert.equal(swarmEarlierTxt.nodeValue, '显示更早的 20 条消息（还有 45 条较早消息）');
+  assert.equal(modelEffortLead.nodeValue, ' Gemini 4 Neon 极高');
+  assert.equal(modelEffortTxt.nodeValue, '');
   ctx.__agyI18n.dispose();
   assert.equal(splitPrefix.nodeValue, 'Thought for ');
   assert.equal(splitDur.nodeValue, '5s');
+  assert.equal(modelEffortLead.nodeValue, ' ');
+  assert.equal(modelEffortTxt.nodeValue, 'Gemini 4 Neon Extra High');
 });
 
 test('Web UI HTTP server handles auth, language toggle, validation, and dictionary reload', async () => {
@@ -692,7 +798,7 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     port: 0,
     allowEphemeral: true,
     token: 'secret-token',
-    version: '1.3.0',
+    version: '1.3.1',
     getStatus: buildSnapshot,
     onSetSettings: async patch => {
       if (patch.language && !['zh-CN', 'en'].includes(patch.language)) {
