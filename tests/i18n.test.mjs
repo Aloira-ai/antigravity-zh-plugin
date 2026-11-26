@@ -262,6 +262,14 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(map.get('Conversation Log'), '对话日志');
   assert.equal(map.get('Extra High'), '极高');
   assert.equal(map.get('Leaving Soon'), '即将下线');
+  assert.equal(map.get('Applies to /btw and messages sent after this turn'), '适用于 /btw 及本轮之后发送的消息');
+  assert.equal(map.get('Applies to messages sent after this turn'), '适用于本轮之后发送的消息');
+  assert.equal(map.get('Delete Skill'), '删除技能');
+  assert.equal(map.get('Enable Recommended Skills'), '启用推荐技能');
+  assert.equal(map.get('Copy Config File Path'), '复制配置文件路径');
+  assert.equal(map.get('Marketplace notice'), '市场提示');
+  assert.equal(map.get('Starting...'), '正在启动…');
+  assert.equal(map.get('Stopping...'), '正在停止…');
 
   assert.equal(translateDynamic('Your Plan: Ultra'), '当前套餐：Ultra');
   assert.equal(translateDynamic('Resets in 2h 30m'), '2 小时 30 分钟后重置');
@@ -302,6 +310,7 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(translateDynamic('2 warnings'), '2 条警告');
   assert.equal(translateDynamic('Version 2.34.0'), '版本 2.34.0');
   assert.equal(translateDynamic('Version 2.35.1'), '版本 2.35.1');
+  assert.equal(translateDynamic('Version 2.35.2'), '版本 2.35.2');
   assert.equal(translateDynamic('+3 more'), '还有 3 项');
   assert.equal(translateDynamic('Move this conversation to "My Project"?'), '要将此对话移至“My Project”吗？');
   assert.equal(translateDynamic('Revoke all: GitHub'), '全部撤销：GitHub');
@@ -317,6 +326,8 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(translateDynamic('Gemini 4 Neon Extra High'), 'Gemini 4 Neon 极高');
   assert.equal(translateDynamic('Claude Opus 5.5 Medium'), 'Claude Opus 5.5 中');
   assert.equal(translateDynamic('GPT-OSS 120B (Medium)'), null);
+  assert.equal(translateDynamic('3/3 steps'), '3/3 步');
+  assert.equal(translateDynamic('Open the agy-zh plugin'), '打开 agy-zh 插件');
 });
 
 test('settings store validates, persists atomically, and merges custom dictionary', () => {
@@ -545,12 +556,35 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   const xtermText = new MockText('Settings');
   xterm.appendChild(xtermText);
 
+  const monacoDiff = new MockElement('div');
+  monacoDiff.setAttribute('class', 'monaco-diff-editor');
+  const monacoDiffText = new MockText('Settings');
+  monacoDiff.appendChild(monacoDiffText);
+
+  const viewLines = new MockElement('div');
+  viewLines.setAttribute('class', 'view-lines');
+  const viewLinesText = new MockText('Copy');
+  viewLines.appendChild(viewLinesText);
+
+  const codeBlockCls = new MockElement('div');
+  codeBlockCls.setAttribute('class', 'code-block');
+  const codeBlockClsText = new MockText('Settings');
+  codeBlockCls.appendChild(codeBlockClsText);
+
+  const kbdEl = new MockElement('kbd');
+  const kbdText = new MockText('Copy');
+  kbdEl.appendChild(kbdText);
+
   doc.body.appendChild(sidebar);
   doc.body.appendChild(chatReply);
   doc.body.appendChild(codeBlock);
   doc.body.appendChild(editable);
   doc.body.appendChild(monaco);
   doc.body.appendChild(xterm);
+  doc.body.appendChild(monacoDiff);
+  doc.body.appendChild(viewLines);
+  doc.body.appendChild(codeBlockCls);
+  doc.body.appendChild(kbdEl);
 
   const hostEvents = [];
   const context = vm.createContext({
@@ -622,6 +656,10 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   assert.equal(editableText.nodeValue, 'Copy');
   assert.equal(monacoText.nodeValue, 'Settings');
   assert.equal(xtermText.nodeValue, 'Settings');
+  assert.equal(monacoDiffText.nodeValue, 'Settings');
+  assert.equal(viewLinesText.nodeValue, 'Copy');
+  assert.equal(codeBlockClsText.nodeValue, 'Settings');
+  assert.equal(kbdText.nodeValue, 'Copy');
 
   // Floating pill mounted and toggles language + notifies host
   const pill = doc.body.childNodes.find(el => el.id === 'agy-i18n-floating-pill');
@@ -721,7 +759,7 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
   doc.body.appendChild(modelEffortLabel);
 
   const script = buildInjectionScript({
-    version: '1.3.1',
+    version: '1.3.2',
     language: 'zh-CN',
     floatingButton: false,
     pairs: BUILTIN_PAIRS,
@@ -738,7 +776,7 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
     MutationObserver: MockMutationObserver,
     NodeFilter: { SHOW_ELEMENT: 1, SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2, FILTER_SKIP: 3 },
     __agyI18n: {
-      version: '1.3.1',
+      version: '1.3.2',
       dispose() {
         staleDisposed = true;
       }
@@ -798,7 +836,7 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     port: 0,
     allowEphemeral: true,
     token: 'secret-token',
-    version: '1.3.1',
+    version: '1.3.2',
     getStatus: buildSnapshot,
     onSetSettings: async patch => {
       if (patch.language && !['zh-CN', 'en'].includes(patch.language)) {

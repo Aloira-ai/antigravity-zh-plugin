@@ -26,7 +26,7 @@
 
 ## 2. 当前进度与本机环境
 
-- **插件版本**：`1.3.1`（`plugin.json` `name: "agy-zh"`、`displayName: "Antigravity 界面汉化"` / `package.json`）
+- **插件版本**：`1.3.2`（`plugin.json` `name: "agy-zh"`、`displayName: "Antigravity 界面汉化"` / `package.json`）
 - **源码工作区**：本地开发目录（GitHub 仓库为 `Aloira-ai/antigravity-zh-plugin`）
 - **已安装插件目录**：`~/.gemini/config/plugins/agy-zh`（Windows 为 `%USERPROFILE%\.gemini\config\plugins\agy-zh`）
 - **用户设置与自定义词典目录**：`~/.gemini/antigravity/plugin_data/agy-zh/`（Windows 为 `%USERPROFILE%\.gemini\antigravity\plugin_data\agy-zh\`；安装脚本会自动从旧版 `agy-i18n` 非破坏式迁移）
@@ -39,7 +39,7 @@
     ```
   - `install.ps1` / `uninstall.ps1` 与 `install.sh` / `uninstall.sh` 会自动优先查找 `node`，找不到时回退到 Antigravity 内置 Node。
 - **当前词典与测试状态**：
-  - `BUILTIN_PAIRS` 共 **2,907 条**（960 条裁剪后的 `agy-powertools` MIT 词条 + 304 条 Antigravity 2.0–2.35 原生补充词条 + 1,643 条精选 `zhangsubo/antigravity-chinese-patch` MIT 词条，已去重）；
+  - `BUILTIN_PAIRS` 共 **2,936 条**（960 条裁剪后的 `agy-powertools` MIT 词条 + 331 条 Antigravity 2.0–2.35 原生补充词条 + 1,645 条精选 `zhangsubo/antigravity-chinese-patch` MIT 词条，已去重）；
   - 动态句式 `translateDynamic` 覆盖套餐/积分/额度重置/欢迎问候/工具与文件数/相对时间（`... ago`）/思考与工作耗时（`Thought for ...`、`Worked for ...`、`Working for ...`、`Running for ...`）/执行步骤树汇总与单节点动作文件（`Explored 2 files, 1 search`、`Analyzed ...` 等）/权限与 SSH/计数单位/版本号等；
   - 单元测试 `tests/i18n.test.mjs` + `tests/cdp-host.test.mjs` 共 **11/11 全部通过**。
 
@@ -71,8 +71,8 @@ antigravity-zh-plugin/
 ├── lib/
 │   ├── paths.mjs              # 跨平台路径解析、DevToolsActivePort 查找、只读启动与快捷方式命令生成
 │   ├── settings.mjs           # 原子写入 settings.json 与增删改/解析 custom-dictionary.json
-│   ├── community-pairs.json   # 精选社区 Antigravity Desktop 补充词条（1643条，MIT）
-│   ├── dictionary.mjs         # BASE_PAIRS + EXTRA_PAIRS + community-pairs.json -> BUILTIN_PAIRS (2907条)、translateDynamic、mergeDictionaryPairs
+│   ├── community-pairs.json   # 精选社区 Antigravity Desktop 补充词条（1645条，MIT）
+│   ├── dictionary.mjs         # BASE_PAIRS + EXTRA_PAIRS + community-pairs.json -> BUILTIN_PAIRS (2936条)、translateDynamic、mergeDictionaryPairs
 │   ├── i18n-client.js         # 注入浏览器的纯 DOM 汉化脚本（多文本节点合并、子树剪枝、精细边界排除、data-tooltip-content 与可选悬浮胶囊）
 │   ├── cdp-host.mjs           # 轮询 DevToolsActivePort、注入 Hub 主窗口与 Swarm iframe、__agyI18nHost 绑定
 │   └── web-ui.mjs             # 127.0.0.1 Sidecar Aux Pane HTTP 服务（加载 /preload.js、token 鉴权、中/英按钮与可视化词典编辑）

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.2] - 2026-11-26
+
+### Added
+- **适配 Antigravity Desktop 2.35.2 与技能市场词条**：
+  - 在 [lib/community-pairs.json](lib/community-pairs.json) 补充 `2.35.2` 模型切换提示词条（`Applies to /btw and messages sent after this turn`、`Applies to messages sent after this turn`，累计 1,645 条，MIT）。
+  - 在 [lib/dictionary.mjs](lib/dictionary.mjs) `EXTRA_PAIRS` 补充 27 条技能与市场管理词条（如 `Delete Skill`、`Enable Recommended Skills`、`Copy Config File Path`、`Marketplace notice`、`Starting...` / `Stopping...` 等），内置词典总计 **2,936 条**；在 `translateDynamic` 新增 `N/M steps` 与 `Open the <name> plugin` 2 条动态规则。
+
+### Fixed
+- **加固代码与 Diff 视图防误伤**：在 [lib/i18n-client.js](lib/i18n-client.js) 补充 `kbd`、`samp`、`.monaco-diff-editor`、`.view-lines`、`.cm-editor`、`.cm-content`、`.code-block`、`.shiki`、`.hljs` 排除选择器，防止误翻代码/差异视图正文，同时保留 `View diff` 等界面按钮正常汉化。
+
 ## [1.3.1] - 2026-11-25
 
 ### Added
