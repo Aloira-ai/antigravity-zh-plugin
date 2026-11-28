@@ -270,6 +270,20 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(map.get('Marketplace notice'), '市场提示');
   assert.equal(map.get('Starting...'), '正在启动…');
   assert.equal(map.get('Stopping...'), '正在停止…');
+  assert.equal(map.get('Credentials'), '凭据');
+  assert.equal(map.get('Environment variables'), '环境变量');
+  assert.equal(map.get('Network secrets'), '网络密钥');
+  assert.equal(map.get('Toggle Thumbnails'), '切换缩略图');
+  assert.equal(map.get('Previous Page'), '上一页');
+  assert.equal(map.get('Commit succeeded'), '提交成功');
+  assert.equal(map.get('Stage change'), '暂存更改');
+  assert.equal(map.get('Fork in New Git Worktree'), '在新建 Git Worktree 中分支');
+  assert.equal(map.get('CEL Expression Reference'), 'CEL 表达式参考');
+  assert.equal(map.get('Waiting for approval to grant administrator access'), '等待批准授予管理员权限');
+  assert.equal(
+    map.get('Ask a quick question without interrupting the main conversation.'),
+    '发起侧边对话，不打断主对话。'
+  );
 
   assert.equal(translateDynamic('Your Plan: Ultra'), '当前套餐：Ultra');
   assert.equal(translateDynamic('Resets in 2h 30m'), '2 小时 30 分钟后重置');
@@ -328,6 +342,24 @@ test('dictionary integrity: pruned, deduplicated, and dynamic rules work', () =>
   assert.equal(translateDynamic('GPT-OSS 120B (Medium)'), null);
   assert.equal(translateDynamic('3/3 steps'), '3/3 步');
   assert.equal(translateDynamic('Open the agy-zh plugin'), '打开 agy-zh 插件');
+  assert.equal(translateDynamic('Worked for 1m 20s · 3 updates'), '已工作 1 分钟 20 秒 · 3 条进度');
+  assert.equal(translateDynamic('Worked for 12s · 4 steps'), '已工作 12 秒 · 4 步');
+  assert.equal(translateDynamic('· 2 updates'), '· 2 条进度');
+  assert.equal(translateDynamic('Explored 2 artifacts'), '已探索 2 个产物');
+  assert.equal(translateDynamic('Show 5 earlier steps'), '显示更早的 5 步');
+  assert.equal(translateDynamic('Showing latest 10 browser steps'), '显示最近 10 个浏览器步骤');
+  assert.equal(translateDynamic('3 subagents running'), '3 个子智能体运行中');
+  assert.equal(translateDynamic('2 background tasks running'), '2 个后台任务运行中');
+  assert.equal(translateDynamic('12 lines added, 4 lines removed'), '新增 12 行，删除 4 行');
+  assert.equal(translateDynamic('Plugin: GitHub'), '插件：GitHub');
+  assert.equal(translateDynamic('Yes, allow downloads from example.com for this run'), '是，本次允许从 example.com 下载');
+  assert.equal(
+    translateDynamic("Yes, and always allow 'git status' in this conversation"),
+    "是，并在本会话中始终允许 'git status'"
+  );
+  assert.equal(translateDynamic("Yes, save rule for 'npm test' globally"), "是，全局为 'npm test' 保存规则");
+  assert.equal(translateDynamic('Version 2.36.0'), '版本 2.36.0');
+  assert.equal(translateDynamic('3 bundles'), '3 个套装');
 });
 
 test('settings store validates, persists atomically, and merges custom dictionary', () => {
@@ -575,7 +607,28 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   const kbdText = new MockText('Copy');
   kbdEl.appendChild(kbdText);
 
+  const pdfBtn = new MockElement('button');
+  pdfBtn.setAttribute('data-tooltip', 'Toggle Thumbnails');
+
+  const excluded236Ids = [
+    'pdf-text-layer',
+    'sidecar-logs-content',
+    'lsp-hover-body',
+    'transcript-line-text',
+    'branch-pill-label',
+    'credential-host-chips'
+  ];
+  const excluded236Texts = excluded236Ids.map(id => {
+    const el = new MockElement('div');
+    el.setAttribute('data-testid', id);
+    const t = new MockText(id === 'branch-pill-label' ? 'Copy' : 'Settings');
+    el.appendChild(t);
+    doc.body.appendChild(el);
+    return { id, t };
+  });
+
   doc.body.appendChild(sidebar);
+  doc.body.appendChild(pdfBtn);
   doc.body.appendChild(chatReply);
   doc.body.appendChild(codeBlock);
   doc.body.appendChild(editable);
@@ -660,6 +713,10 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   assert.equal(viewLinesText.nodeValue, 'Copy');
   assert.equal(codeBlockClsText.nodeValue, 'Settings');
   assert.equal(kbdText.nodeValue, 'Copy');
+  assert.equal(pdfBtn.getAttribute('data-tooltip'), '切换缩略图');
+  for (const { id, t } of excluded236Texts) {
+    assert.equal(t.nodeValue, id === 'branch-pill-label' ? 'Copy' : 'Settings', `2.36 excluded node untouched: ${id}`);
+  }
 
   // Floating pill mounted and toggles language + notifies host
   const pill = doc.body.childNodes.find(el => el.id === 'agy-i18n-floating-pill');
@@ -674,6 +731,7 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   assert.equal(analyzedTargetText.nodeValue, 'i18n-client.js #L1-505');
   assert.equal(tooltipBtn.getAttribute('data-tooltip-content'), 'Copy link');
   assert.equal(tooltipBtnText.nodeValue, 'Copy');
+  assert.equal(pdfBtn.getAttribute('data-tooltip'), 'Toggle Thumbnails');
   assert.equal(multiPrefix.nodeValue, 'Thought for ');
   assert.equal(multiNum.nodeValue, '13s');
   assert.equal(feedbackText.nodeValue, 'Send feedback as alice@example.com');
@@ -686,6 +744,7 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   assert.equal(exploredFilesText.nodeValue, '已探索文件');
   assert.equal(analyzedVerbText.nodeValue, '已分析 ');
   assert.equal(tooltipBtn.getAttribute('data-tooltip-content'), '复制链接');
+  assert.equal(pdfBtn.getAttribute('data-tooltip'), '切换缩略图');
   assert.equal(multiPrefix.nodeValue, '思考了 13 秒');
   assert.equal(multiNum.nodeValue, '');
   assert.equal(feedbackText.nodeValue, '以 alice@example.com 提交反馈');
@@ -715,6 +774,8 @@ test('DOM localizer translates UI, respects exclusions and aria-label, toggles E
   assert.equal(analyzedTargetText.nodeValue, 'i18n-client.js #L1-505');
   assert.equal(tooltipBtn.getAttribute('data-tooltip-content'), 'Copy link');
   assert.equal(tooltipBtn.hasAttribute('data-agy-i18n-orig-data-tooltip-content'), false);
+  assert.equal(pdfBtn.getAttribute('data-tooltip'), 'Toggle Thumbnails');
+  assert.equal(pdfBtn.hasAttribute('data-agy-i18n-orig-data-tooltip'), false);
   assert.equal(tooltipBtn.getAttribute('aria-label'), 'Copy');
   assert.equal(multiPrefix.nodeValue, 'Thought for ');
   assert.equal(multiNum.nodeValue, '13s');
@@ -751,15 +812,23 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
   const modelEffortTxt = new MockText('Gemini 4 Neon Extra High');
   modelEffortLabel.appendChild(modelEffortLead);
   modelEffortLabel.appendChild(modelEffortTxt);
+  const workedMetaLabel = new MockElement('span');
+  const workedMetaTxt = new MockText('Worked for 1m 20s · 3 updates');
+  workedMetaLabel.appendChild(workedMetaTxt);
+  const permDownloadLabel = new MockElement('span');
+  const permDownloadTxt = new MockText('Yes, allow downloads from example.com for this run');
+  permDownloadLabel.appendChild(permDownloadTxt);
   doc.body.appendChild(label);
   doc.body.appendChild(comboLabel);
   doc.body.appendChild(actionLabel);
   doc.body.appendChild(splitLabel);
   doc.body.appendChild(swarmEarlierLabel);
   doc.body.appendChild(modelEffortLabel);
+  doc.body.appendChild(workedMetaLabel);
+  doc.body.appendChild(permDownloadLabel);
 
   const script = buildInjectionScript({
-    version: '1.3.2',
+    version: '1.3.3',
     language: 'zh-CN',
     floatingButton: false,
     pairs: BUILTIN_PAIRS,
@@ -776,7 +845,7 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
     MutationObserver: MockMutationObserver,
     NodeFilter: { SHOW_ELEMENT: 1, SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2, FILTER_SKIP: 3 },
     __agyI18n: {
-      version: '1.3.2',
+      version: '1.3.3',
       dispose() {
         staleDisposed = true;
       }
@@ -808,11 +877,15 @@ test('buildInjectionScript serializes self-contained translateDynamic and runs i
   assert.equal(swarmEarlierTxt.nodeValue, '显示更早的 20 条消息（还有 45 条较早消息）');
   assert.equal(modelEffortLead.nodeValue, ' Gemini 4 Neon 极高');
   assert.equal(modelEffortTxt.nodeValue, '');
+  assert.equal(workedMetaTxt.nodeValue, '已工作 1 分钟 20 秒 · 3 条进度');
+  assert.equal(permDownloadTxt.nodeValue, '是，本次允许从 example.com 下载');
   ctx.__agyI18n.dispose();
   assert.equal(splitPrefix.nodeValue, 'Thought for ');
   assert.equal(splitDur.nodeValue, '5s');
   assert.equal(modelEffortLead.nodeValue, ' ');
   assert.equal(modelEffortTxt.nodeValue, 'Gemini 4 Neon Extra High');
+  assert.equal(workedMetaTxt.nodeValue, 'Worked for 1m 20s · 3 updates');
+  assert.equal(permDownloadTxt.nodeValue, 'Yes, allow downloads from example.com for this run');
 });
 
 test('Web UI HTTP server handles auth, language toggle, validation, and dictionary reload', async () => {
@@ -836,7 +909,7 @@ test('Web UI HTTP server handles auth, language toggle, validation, and dictiona
     port: 0,
     allowEphemeral: true,
     token: 'secret-token',
-    version: '1.3.2',
+    version: '1.3.3',
     getStatus: buildSnapshot,
     onSetSettings: async patch => {
       if (patch.language && !['zh-CN', 'en'].includes(patch.language)) {

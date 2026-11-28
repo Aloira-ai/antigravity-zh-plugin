@@ -66,6 +66,12 @@ function createMockCdpClient(id, { frameId = 'frame-main', isHub = true } = {}) 
 test('target matchers identify hub pages and swarm iframes accurately', () => {
   assert.equal(isHubTarget({ type: 'page', url: 'https://127.0.0.1:443/c/abc123', title: 'Antigravity' }), true);
   assert.equal(isHubTarget({ type: 'page', url: 'https://localhost:8443/customizations', title: 'Custom' }), true);
+  assert.equal(isHubTarget({ type: 'page', url: 'https://127.0.0.1:8443/settings-standalone', title: 'Settings' }), true);
+  assert.equal(isHubTarget({ type: 'page', url: 'https://127.0.0.1:8443/sidecars/triggers/t1', title: 'Triggers' }), true);
+  assert.equal(isHubTarget({ type: 'page', url: 'https://127.0.0.1:8443/feeds', title: 'Feeds' }), true);
+  assert.equal(isHubTarget({ type: 'page', url: 'https://127.0.0.1:8443/forked/a/b', title: 'Forked' }), true);
+  assert.equal(isHubTarget({ type: 'page', url: 'http://127.0.0.1:8443/settings-standalone', title: 'Settings' }), false);
+  assert.equal(isHubTarget({ type: 'page', url: 'https://example.com/settings', title: 'Settings' }), false);
   assert.equal(isHubTarget({ type: 'page', url: 'http://127.0.0.1:3000/', title: 'Other' }), false);
   assert.equal(isHubTarget({ type: 'page', url: 'https://example.com/', title: 'Antigravity' }), false);
   assert.equal(isSwarmTarget({ type: 'iframe', url: 'plugin://swarm--swarm_board-1/index.html' }), true);

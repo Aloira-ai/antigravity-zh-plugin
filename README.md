@@ -1,10 +1,10 @@
 # Antigravity 界面汉化插件
 
-一个轻量、透明、零第三方运行时依赖的 **Antigravity 2.0** 简体中文 / English 界面汉化插件（应用内展示名：**Antigravity 界面汉化**，内部 ID：`agy-zh`），内置 **2,936** 条桌面端 UI 词条与动态句式规则，提供一键无重启中英切换。
+一个轻量、透明、零第三方运行时依赖的 **Antigravity 2.0** 简体中文 / English 界面汉化插件（应用内展示名：**Antigravity 界面汉化**，内部 ID：`agy-zh`），内置 **3,325** 条桌面端 UI 词条与动态句式规则，提供一键无重启中英切换。
 
 ## 为什么做这个插件
 
-- **纯 DOM 层翻译**：仅通过 `MutationObserver` 与 `TreeWalker` 替换客户端 UI 文本（支持 React 拆散多文本节点合并翻译）与 `placeholder` / `title` / `data-tooltip-content` 属性，**跳过且不篡改**对话正文、用户提问、输入框、终端、代码编辑器、会话标题与代码块，也**不改动** `aria-label`。
+- **纯 DOM 层翻译**：仅通过 `MutationObserver` 与 `TreeWalker` 替换客户端 UI 文本（支持 React 拆散多文本节点合并翻译）与 `placeholder` / `title` / `data-tooltip-content` / `data-tooltip` 属性，**跳过且不篡改**对话正文、用户提问、输入框、终端、代码编辑器、会话标题与代码块，也**不改动** `aria-label`。
 - **抗升级、零冗余侵入**：不修改 `app.asar`、不绑定未公开 React Fiber / 混淆组件 / Protobuf 字段，不注入模型 Prompt，不读取会话 SQLite，不修改 `config.json` 或快捷方式，不调用系统凭据库，不自动下载更新。
 - **零外部网络请求**：插件运行时严格只访问本机 `127.0.0.1` 回环地址（本地 CDP 调试端口与 Sidecar 辅助面板）。
 
@@ -97,7 +97,7 @@ cd antigravity-zh-plugin
 - **主窗口右下角悬浮胶囊（可选）**：在 **界面汉化** 面板打开「主窗口悬浮切换按钮 (`中 / EN`)」开关后，主窗口右下角会出现可拖动位置的胶囊按钮，点击即可秒切中英文。
 
 ### 2. 可视化自定义词典与内置助手技能
-插件已内置 **2,936 条**常见界面词条。如需补充或覆盖内置译文，可任选以下三种方式：
+插件已内置 **3,325 条**常见界面词条。如需补充或覆盖内置译文，可任选以下三种方式：
 - **面板内可视化增删（推荐）**：直接在右侧 **界面汉化** 面板的「翻译词典」卡片输入英文原文与中文译文并点 **添加**（点击已有词条可快速回填修改，或一键删除），保存后立即热生效，无需重启。
 - **对话配置（内置 `/agy-zh` 技能）**：在插件详情页点击推荐提示词，或直接对 Antigravity 说“检查汉化状态 / 往自定义词典把 XXX 翻译成 YYY”。
 - **手动编辑 JSON 文件**：文件位于 `~/.gemini/antigravity/plugin_data/agy-zh/custom-dictionary.json`（Windows 为 `%USERPROFILE%\.gemini\antigravity\plugin_data\agy-zh\custom-dictionary.json`），保存后在面板点 **重新加载词典** 即可。

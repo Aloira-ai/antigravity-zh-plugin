@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.3] - 2026-11-28
+
+### Added
+- **适配 Antigravity Desktop 2.36.0 新模块与高频界面词条**：
+  - 在 [lib/dictionary.mjs](lib/dictionary.mjs) `EXTRA_PAIRS` 新增 **389 条** 2.36.0 新增界面与原生高频漏翻词条（覆盖凭据管理 `Environment variables` / `Network secrets`、插件套装 `Bundles`、电脑操作权限、Git/VCS 提交与 Worktree 分支、PDF/媒体预览工具栏、消息搜索、CEL 表达式触发器、语音听写与斜杠命令说明、工具步骤/等待状态等），内置词典去重后总计 **3,325 条**。
+  - 在 `translateDynamic` 新增 24 条动态规则与 10 组计数单位（覆盖 `Worked for <时长> · N updates/steps`、`Show N earlier steps`、`Showing latest N browser steps`、`N subagents running`、`N background tasks running`、`N lines added, N lines removed`、`Plugin: <name>`、权限审批 `Yes, allow ...` / `Yes, save rule ...`、`bundles` / `credentials` / `secrets` 等）。
+- **PDF 工具栏 `data-tooltip` 翻译支持**：在 [lib/i18n-client.js](lib/i18n-client.js) `TRANSLATED_ATTRS` 与初始扫描选择器中新增 `data-tooltip`，使 2.36.0 PDF 预览工具栏提示（`Toggle Thumbnails`、`Previous Page`、`Next Page` 等）正常汉化与无损还原。
+
+### Fixed
+- **加固 2.36.0 新增正文与代码/标识防误伤保护**：在 [lib/i18n-client.js](lib/i18n-client.js) `ATTR_EXCLUDED_ITEMS` 补充 `pdf-text-layer`、`sidecar-logs-content`、`lsp-hover-body`、`lsp-hover-signature`、`transcript-line-text`、`voice-transcript-summary-lead`、`voice-transcript-summary-point`、`credential-host-chips`、`file-title-name`、`branch-pill-label`、`branch-repo-label`、`ssh-host-label`、`ssh-config-file-name`、`markdown-frontmatter`、`pill-comment-anchor-text`、`agent-remote-session-search-highlight` 排除项。
+- **扩展独立窗口路由匹配**：在 [lib/cdp-host.mjs](lib/cdp-host.mjs) `HUB_PATH_RE` 补充 `/settings`、`/settings-standalone`、`/sidecars`、`/feeds`、`/forked`、`/onboarding`、`/terminal-standalone`、`/artifact`、`/view` 路由兜底，避免独立窗口标题变化时漏注入。
+
 ## [1.3.2] - 2026-11-26
 
 ### Added
